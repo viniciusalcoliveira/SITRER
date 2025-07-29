@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BFM Frotas - Controle Geral</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+               /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { /* Used for main menus now */
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top center;
+        }
+
+        /* Custom animation for dropdown fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right { /* Used for sub-menus now */
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left center;
+        }
+
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Adjust caret rotation for main dropdowns (back to caret-down) */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Points up when open */
+        }
+
+        /* Adjust caret rotation for submenus (still caret-right) */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open */
+        }
+
+        /* Dropdown content positioning for downwards opening (main menus) */
+        .dropdown-content {
+            position: absolute;
+            top: 100%; /* Position directly below the parent button */
+            left: 0;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+        /* Submenu content positioning for side opening (submenus) */
+        .submenu-content {
+            position: absolute;
+            top: 0; /* Align top with parent submenu trigger */
+            left: 100%; /* Position to the right of parent submenu trigger */
+            margin-left: 0.5rem; /* Small gap */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            border-left: 1px solid #e2e8f0; /* Add a subtle left border for visual separation */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+
+         /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Main dropdowns revert to full width and relative positioning for mobile */
+            .dropdown-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 1rem; /* Indent dropdown items */
+                margin-left: 0; /* Remove margin */
+            }
+            /* Submenus also revert to full width and static positioning for mobile */
+            .submenu-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-left: none; /* Remove left border */
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 2rem; /* Further indent nested items */
+                margin-left: 0; /* Remove margin */
+            }
+
+            /* Caret rotations for mobile should be different (pointing down when open) */
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset to default right-pointing */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(90deg) !important; /* Rotate down for consistency in mobile dropdowns */
+            }
+        }
+
+        /* Form styling */
+        .form-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 900px; /* Increased max-width for better multi-column layout */
+        }
+
+        .form-container h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a; /* green-600 */
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-container h1 .ph {
+            font-size: 2.25rem; /* Larger icon for heading */
+        }
+
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155; /* slate-700 */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-group label .ph {
+            font-size: 1.125rem; /* Icon size for labels */
+        }
+
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select { /* Added select */
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #475569; /* slate-700 */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: white; /* Ensure consistent background */
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus { /* Added select */
+            outline: none;
+            border-color: #16a34a; /* green-600 */
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); /* green-600 with opacity */
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .radio-group div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-group input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.2s ease;
+        }
+
+        .radio-group input[type="radio"]:checked {
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .radio-group input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.75rem;
+            height: 0.75rem;
+            background-color: #16a34a; /* green-600 */
+            border-radius: 50%;
+        }
+
+        .radio-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 0.375rem; /* rounded-md */
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            background-color: #16a34a; /* green-600 */
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .checkbox-group input[type="checkbox"]:checked::after {
+            content: '\2713'; /* Checkmark character */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: bold;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        #btnCadastrarCompartimento { /* Renamed for clarity */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 2rem;
+        }
+
+        #btnCadastrarCompartimento:hover {
+            background-color: #15803d; /* green-700 */
+            transform: translateY(-1px);
+        }
+
+        #btnCadastrarCompartimento:active {
+            transform: translateY(0);
+        }
+
+        #btnCancelEdit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 1rem; /* Space between submit and cancel */
+        }
+
+        #btnCancelEdit:hover {
+            background-color: #dc2626; /* red-600 */
+            transform: translateY(-1px);
+        }
+
+        #btnCancelEdit:active {
+            transform: translateY(0);
+        }
+
+        /* Listing Area for Compartments */
+        .listing-area {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .listing-area h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .listing-area h2 .ph {
+            font-size: 2.25rem;
+        }
+
+        #compartmentsList .empty-state {
+            text-align: center;
+            color: #6b7280; /* gray-500 */
+            padding: 2rem;
+            border: 1px dashed #d1d5db; /* gray-300 */
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Thinner Compartment Item Styling */
+        .compartment-item {
+            display: flex;
+            justify-content: space-between; /* Content left, actions right */
+            align-items: center; /* Vertically center content */
+            background-color: #f8fafc; /* slate-50 */
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem; /* Reduced vertical padding */
+            margin-bottom: 0.75rem; /* Reduced margin between items */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 1rem; /* Gap between content and buttons if they wrap */
+        }
+
+        .compartment-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .compartment-item h3 {
+            font-size: 1.25rem; /* Slightly smaller font for compactness */
+            font-weight: 600;
+            color: #1e293b; /* slate-800 */
+            margin-bottom: 0; /* Remove margin */
+            padding-bottom: 0; /* Remove padding */
+            border-bottom: none; /* Remove border */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-grow: 1; /* Allow content to grow */
+        }
+        .compartment-item h3 .ph {
+            font-size: 1.5rem; /* Adjust icon size */
+            color: #16a34a;
+        }
+
+        .compartment-item .actions {
+            display: flex;
+            gap: 0.5rem; /* Smaller gap between buttons */
+            margin-top: 0; /* Remove margin */
+            padding-top: 0; /* Remove padding */
+            border-top: none; /* Remove border */
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        .compartment-item .delete-btn,
+        .compartment-item .edit-btn { /* Style for both buttons */
+            background-color: #dc2626; /* red-600 */
+            color: white;
+            padding: 0.4rem 0.8rem; /* Even smaller padding for buttons */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem; /* Smaller gap for button icons */
+            font-size: 0.875rem; /* Smaller font for buttons */
+        }
+
+        .compartment-item .edit-btn {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .compartment-item .edit-btn:hover {
+            background-color: #1d4ed8; /* blue-700 */
+            transform: translateY(-1px);
+        }
+        .compartment-item .edit-btn:active {
+            transform: translateY(0);
+        }
+
+        .compartment-item .delete-btn:hover {
+            background-color: #b91c1c; /* red-700 */
+            transform: translateY(-1px);
+        }
+
+        .compartment-item .delete-btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            display: none; /* Hidden by default */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert.success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            border: 1px solid #34d399; /* green-400 */
+        }
+
+        .alert.error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+            border: 1px solid #f87171; /* red-400 */
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #f8fafc; /* Changed to slate-50 to match other elements */
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            max-height: 90vh; /* Limit modal height */
+            overflow-y: auto; /* Enable scrolling for long content */
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-content input[type="text"] {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .modal-actions button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+
+        .modal-actions .btn-cancel {
+            background-color: #e2e8f0; /* slate-200 */
+            color: #334155; /* slate-700 */
+        }
+        .modal-actions .btn-cancel:hover {
+            background-color: #cbd5e1; /* slate-300 */
+        }
+
+        .modal-actions .btn-save {
+            background-color: #16a34a; /* green-600 */
+            color: white;
+        }
+        .modal-actions .btn-save:hover {
+            background-color: #15803d; /* green-700 */
+        }
+
+        /* Edit Modal Specific Styles */
+        #editCompartmentModal .modal-content {
+            max-width: 600px; /* Wider for edit fields */
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+
+    <main class="flex-grow container mx-auto p-4 md:p-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Controle Geral da Frota</h1>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Gerenciar Chave API de Telemetria</h2>
+            <div class="form-group">
+                <label for="telemetryApiKey" class="block text-sm font-medium text-gray-700">Chave API</label>
+                <input type="password" id="telemetryApiKey" name="telemetryApiKey" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Insira sua chave API aqui" autocomplete="off">
+                <p id="apiKeyStatus" class="mt-2 text-sm text-gray-500"></p>
+            </div>
+            <div class="flex gap-4">
+                <button type="button" id="saveApiKeyBtn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="ph ph-save mr-2"></i> Salvar Chave API
+                </button>
+                <button type="button" id="changeApiKeyBtn" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" style="display: none;">
+                    <i class="ph ph-key-return mr-2"></i> Alterar Chave API
+                </button>
+                <button type="button" id="callTelemetryApiBtn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" style="display: none;">
+                    <i class="ph ph-telegram-logo mr-2"></i> Testar Conexão API
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Adicionar Novo Registro de Controle</h2>
+            <form id="controlForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="recordId" value="">
+                <div>
+                    <label for="vehicle" class="block text-sm font-medium text-gray-700">Veículo</label>
+                    <input type="text" id="vehicle" name="vehicle" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Ex: Caminhão ABC-1234" required>
+                </div>
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700">Tipo de Controle</label>
+                    <select id="type" name="type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" required>
+                        <option value="">Selecione...</option>
+                        <option value="abastecimento">Abastecimento</option>
+                        <option value="despesa">Despesa</option>
+                        <option value="km_hr">Leitura Hodômetro/Horímetro</option>
+                        <option value="pneu">Controle de Pneu</option>
+                        <option value="documento">Documentação</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="date" class="block text-sm font-medium text-gray-700">Data</label>
+                    <input type="date" id="date" name="date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" required>
+                </div>
+                <div>
+                    <label for="value" class="block text-sm font-medium text-gray-700">Valor/Quantidade</label>
+                    <input type="text" id="value" name="value" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Ex: 50.00 (R$) ou 12000 (km)" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Descrição</label>
+                    <textarea id="description" name="description" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Detalhes do registro..."></textarea>
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" id="submitBtn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i class="ph ph-plus-circle mr-2"></i> Adicionar Registro
+                    </button>
+                    <button type="button" id="cancelEditBtn" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ml-2" style="display:none;">
+                        Cancelar Edição
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <section>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Registros de Controle</h2>
+            <div class="overflow-x-auto bg-white rounded-lg shadow-md p-4">
+                <table class="min-w-full divide-y divide-gray-200" id="controlTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Veículo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor/Qtd.</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-4 mt-10 rounded-t-xl">
+        <p>&copy; 2025 BFM Frotas. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        // Dropdown Menu Logic (Existing from header, kept as is to preserve general menu functionality)
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                const dropdownContent = dropdown.querySelector('.dropdown-content');
+
+                if (button && dropdownContent) {
+                    button.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                        dropdowns.forEach(otherDropdown => {
+                            const otherDropdownContent = otherDropdown.querySelector('.dropdown-content');
+                            const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                            if (otherDropdown !== dropdown && otherDropdownContent && !otherDropdownContent.classList.contains('hidden')) {
+                                otherDropdownContent.classList.add('hidden');
+                                otherDropdownContent.classList.remove('animate-fade-in-down');
+                                if (otherButton) {
+                                    otherButton.setAttribute('aria-expanded', 'false');
+                                }
+                            }
+                        });
+                        dropdownContent.classList.toggle('hidden');
+                        dropdownContent.classList.toggle('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', dropdownContent.classList.contains('hidden') ? 'false' : 'true');
+
+                        const openSubmenus = dropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                        openSubmenus.forEach(submenu => {
+                            submenu.classList.add('hidden');
+                            submenu.classList.remove('animate-fade-in-right');
+                            const submenuTrigger = submenu.previousElementSibling;
+                            if (submenuTrigger && submenuTrigger.hasAttribute('aria-expanded')) {
+                                submenuTrigger.setAttribute('aria-expanded', 'false');
+                            }
+                        });
+                    });
+                    dropdownContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            document.addEventListener('click', function(event) {
+                dropdowns.forEach(dropdown => {
+                    const dropdownContent = dropdown.querySelector('.dropdown-content');
+                    const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                    if (dropdownContent && button && !dropdown.contains(event.target)) {
+                        dropdownContent.classList.add('hidden');
+                        dropdownContent.classList.remove('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+            submenuTriggers.forEach(trigger => {
+                const submenuContent = trigger.nextElementSibling;
+                if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+                    trigger.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                        const parentDropdownContent = trigger.closest('.dropdown-content');
+                        if (parentDropdownContent) {
+                            const otherSubmenus = parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                            otherSubmenus.forEach(otherSubmenu => {
+                                const otherTrigger = otherSubmenu.previousElementSibling;
+                                if (otherSubmenu !== submenuContent && otherTrigger) {
+                                    otherSubmenu.classList.add('hidden');
+                                    otherSubmenu.classList.remove('animate-fade-in-right');
+                                    otherTrigger.setAttribute('aria-expanded', 'false');
+                                }
+                            });
+                        }
+                        submenuContent.classList.toggle('hidden');
+                        submenuContent.classList.toggle('animate-fade-in-right');
+                        trigger.setAttribute('aria-expanded', submenuContent.classList.contains('hidden') ? 'false' : 'true');
+                    });
+                    submenuContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            const alertBellButton = document.getElementById('alertBellButton');
+            const alertDropdown = document.getElementById('alertDropdown');
+            const alertCount = document.getElementById('alertCount');
+            const alertList = document.getElementById('alertList');
+
+            if (alertBellButton && alertDropdown) {
+                alertBellButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    alertDropdown.classList.toggle('hidden');
+                    alertDropdown.classList.toggle('animate-fade-in-down');
+                    alertBellButton.setAttribute('aria-expanded', alertDropdown.classList.contains('hidden') ? 'false' : 'true');
+                    if (!alertDropdown.classList.contains('hidden')) {
+                        loadAlerts();
+                    }
+                });
+                alertDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            }
+
+            function loadAlerts() {
+                const alerts = [
+                    "Manutenção preventiva do Veículo ABC-1234 vence em 5 dias.",
+                    "Pneu do Veículo XYZ-5678 precisa de substituição."
+                ];
+
+                if (alerts.length > 0) {
+                    alertCount.textContent = alerts.length;
+                    alertCount.style.display = 'block';
+                    alertList.innerHTML = alerts.map(alert => `<p class="text-sm border-b border-gray-200 py-2 last:border-b-0">${alert}</p>`).join('');
+                } else {
+                    alertCount.style.display = 'none';
+                    alertList.innerHTML = '<p class="text-sm text-gray-500">Nenhum alerta no momento.</p>';
+                }
+            }
+
+            // Highlight active menu item based on current page (Existing from header, kept as is)
+            const currentPath = window.location.pathname.split('/').pop();
+            const menuLinks = document.querySelectorAll('.menu-link');
+            menuLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href.includes(currentPath) && currentPath !== '') {
+                    link.classList.add('active-menu');
+
+                    let parentDropdownContent = link.closest('.dropdown-content');
+                    while (parentDropdownContent) {
+                        const parentButton = parentDropdownContent.previousElementSibling;
+                        if (parentButton && parentButton.classList.contains('menu-link')) {
+                            parentButton.classList.add('active-menu');
+                            parentButton.setAttribute('aria-expanded', 'true');
+                            parentDropdownContent.classList.remove('hidden');
+                        }
+                        if (parentDropdownContent.classList.contains('submenu-content')) {
+                            const submenuTrigger = parentDropdownContent.previousElementSibling;
+                            if (submenuTrigger && submenuTrigger.classList.contains('submenu-trigger')) {
+                                submenuTrigger.setAttribute('aria-expanded', 'true');
+                                parentDropdownContent.classList.remove('hidden');
+                            }
+                        }
+                        parentDropdownContent = parentDropdownContent.closest('.dropdown-content');
+                    }
+                }
+            });
+
+            // Mobile Menu Toggle (Existing from header, kept as is)
+            window.toggleMobileMenu = function() {
+                const nav = document.querySelector('header nav');
+                nav.classList.toggle('active');
+            };
+
+            // Logout function (Existing from header, kept as is)
+            window.logout = function() {
+                localStorage.removeItem('logado');
+                window.location.href = 'login.html';
+            };
+
+            // Check login status on page load (Existing from header, kept as is)
+            if (localStorage.getItem('logado') !== 'true') {
+                window.location.href = 'login.html';
+            }
+
+
+            // --- NEW FUNCTIONALITY START ---
+
+            // --- API Key Management ---
+            const telemetryApiKeyInput = document.getElementById('telemetryApiKey');
+            const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+            const changeApiKeyBtn = document.getElementById('changeApiKeyBtn');
+            const callTelemetryApiBtn = document.getElementById('callTelemetryApiBtn');
+            const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+            function getApiKey() {
+                return localStorage.getItem('telemetryApiKey');
+            }
+
+            function setApiKey(key) {
+                localStorage.setItem('telemetryApiKey', key);
+            }
+
+            function updateApiKeyUI() {
+                const apiKey = getApiKey();
+                if (apiKey) {
+                    telemetryApiKeyInput.value = '********'; // Mask the key
+                    telemetryApiKeyInput.disabled = true;
+                    saveApiKeyBtn.style.display = 'none';
+                    changeApiKeyBtn.style.display = 'inline-flex';
+                    callTelemetryApiBtn.style.display = 'inline-flex';
+                    apiKeyStatus.textContent = 'Chave API configurada com sucesso.';
+                    apiKeyStatus.classList.remove('text-red-500');
+                    apiKeyStatus.classList.add('text-green-600');
+                } else {
+                    telemetryApiKeyInput.value = '';
+                    telemetryApiKeyInput.disabled = false;
+                    saveApiKeyBtn.style.display = 'inline-flex';
+                    changeApiKeyBtn.style.display = 'none';
+                    callTelemetryApiBtn.style.display = 'none';
+                    apiKeyStatus.textContent = 'Nenhuma chave API configurada.';
+                    apiKeyStatus.classList.remove('text-green-600');
+                    apiKeyStatus.classList.add('text-red-500');
+                }
+            }
+
+            saveApiKeyBtn.addEventListener('click', function() {
+                const key = telemetryApiKeyInput.value.trim();
+                if (key) {
+                    setApiKey(key);
+                    updateApiKeyUI();
+                    alert('Chave API salva com sucesso!');
+                } else {
+                    alert('Por favor, insira uma chave API.');
+                }
+            });
+
+            changeApiKeyBtn.addEventListener('click', function() {
+                telemetryApiKeyInput.value = ''; // Clear for new input
+                telemetryApiKeyInput.disabled = false;
+                telemetryApiKeyInput.focus();
+                saveApiKeyBtn.style.display = 'inline-flex';
+                changeApiKeyBtn.style.display = 'none';
+                callTelemetryApiBtn.style.display = 'none'; // Hide test button until new key is saved
+                apiKeyStatus.textContent = 'Insira a nova chave API.';
+                apiKeyStatus.classList.remove('text-green-600');
+                apiKeyStatus.classList.add('text-blue-500');
+            });
+
+            callTelemetryApiBtn.addEventListener('click', function() {
+                const apiKey = getApiKey();
+                if (apiKey) {
+                    alert('Simulando chamada à API de telemetria com a chave: ' + apiKey.substring(0, 5) + '...'); // Show a masked version
+                    console.log('API Key para telemetria:', apiKey);
+                    apiKeyStatus.textContent = 'Chamada de teste à API enviada (verifique o console).';
+                    apiKeyStatus.classList.remove('text-red-500', 'text-blue-500');
+                    apiKeyStatus.classList.add('text-green-600');
+                    // In a real application, you would make an actual fetch() request here
+                    // fetch('YOUR_TELEMETRY_API_ENDPOINT', {
+                    //     method: 'GET', // Or POST, depending on the API
+                    //     headers: {
+                    //         'Authorization': `Bearer ${apiKey}`, // Common way to pass API key
+                    //         'Content-Type': 'application/json'
+                    //     }
+                    // })
+                    // .then(response => response.json())
+                    // .then(data => console.log('API Response:', data))
+                    // .catch(error => console.error('Error calling API:', error));
+                } else {
+                    alert('Por favor, configure sua chave API primeiro.');
+                    apiKeyStatus.textContent = 'Por favor, configure sua chave API primeiro.';
+                    apiKeyStatus.classList.add('text-red-500');
+                }
+            });
+
+            updateApiKeyUI(); // Initial UI update for API key
+
+            // --- Form Data Management with LocalStorage ---
+            let records = [];
+            const CONTROL_STORAGE_KEY = 'bfmFrotasControlRecords';
+
+            const controlForm = document.getElementById('controlForm');
+            const recordIdInput = document.getElementById('recordId');
+            const vehicleInput = document.getElementById('vehicle');
+            const typeSelect = document.getElementById('type');
+            const dateInput = document.getElementById('date');
+            const valueInput = document.getElementById('value');
+            const descriptionInput = document.getElementById('description');
+            const submitBtn = document.getElementById('submitBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const controlTableBody = document.querySelector('#controlTable tbody');
+
+            function saveRecords() {
+                localStorage.setItem(CONTROL_STORAGE_KEY, JSON.stringify(records));
+            }
+
+            function loadRecords() {
+                const storedRecords = localStorage.getItem(CONTROL_STORAGE_KEY);
+                if (storedRecords) {
+                    records = JSON.parse(storedRecords);
+                } else {
+                    records = [];
+                }
+                renderTable();
+            }
+
+            function renderTable() {
+                controlTableBody.innerHTML = ''; // Clear existing rows
+                records.forEach(record => {
+                    const newRow = controlTableBody.insertRow();
+                    newRow.setAttribute('data-id', record.id); // Store ID on the row for easy access
+
+                    newRow.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.vehicle}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.type.charAt(0).toUpperCase() + record.type.slice(1).replace('_', ' ')}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.value}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${record.description || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button type="button" data-action="edit" data-id="${record.id}" class="text-indigo-600 hover:text-indigo-900 mr-4"><i class="ph ph-pencil"></i></button>
+                            <button type="button" data-action="delete" data-id="${record.id}" class="text-red-600 hover:text-red-900"><i class="ph ph-trash"></i></button>
+                        </td>
+                    `;
+                });
+            }
+
+            function clearForm() {
+                controlForm.reset();
+                recordIdInput.value = '';
+                submitBtn.innerHTML = '<i class="ph ph-plus-circle mr-2"></i> Adicionar Registro';
+                submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                submitBtn.classList.add('bg-green-700', 'hover:bg-green-800');
+                cancelEditBtn.style.display = 'none';
+            }
+
+            // Generate a simple unique ID for records
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            controlForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const id = recordIdInput.value;
+                const vehicle = vehicleInput.value.trim();
+                const type = typeSelect.value;
+                const date = dateInput.value;
+                const value = valueInput.value.trim();
+                const description = descriptionInput.value.trim();
+
+                if (!vehicle || !type || !date || !value) {
+                    alert('Por favor, preencha todos os campos obrigatórios.');
+                    return;
+                }
+
+                if (id) {
+                    // Editing existing record
+                    const recordIndex = records.findIndex(rec => rec.id === id);
+                    if (recordIndex > -1) {
+                        records[recordIndex] = { id, vehicle, type, date, value, description };
+                    }
+                    alert('Registro atualizado com sucesso!');
+                } else {
+                    // Adding new record
+                    const newRecord = {
+                        id: generateId(),
+                        vehicle,
+                        type,
+                        date,
+                        value,
+                        description
+                    };
+                    records.push(newRecord);
+                    alert('Registro adicionado com sucesso!');
+                }
+
+                saveRecords();
+                renderTable();
+                clearForm();
+            });
+
+            controlTableBody.addEventListener('click', function(event) {
+                const targetButton = event.target.closest('button');
+                if (targetButton) {
+                    const action = targetButton.getAttribute('data-action');
+                    const id = targetButton.getAttribute('data-id');
+
+                    if (action === 'edit') {
+                        const recordToEdit = records.find(rec => rec.id === id);
+                        if (recordToEdit) {
+                            recordIdInput.value = recordToEdit.id;
+                            vehicleInput.value = recordToEdit.vehicle;
+                            typeSelect.value = recordToEdit.type;
+                            dateInput.value = recordToEdit.date;
+                            valueInput.value = recordToEdit.value;
+                            descriptionInput.value = recordToEdit.description;
+
+                            submitBtn.innerHTML = '<i class="ph ph-check-circle mr-2"></i> Atualizar Registro';
+                            submitBtn.classList.remove('bg-green-700', 'hover:bg-green-800');
+                            submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                            cancelEditBtn.style.display = 'inline-flex';
+                            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to form
+                        }
+                    } else if (action === 'delete') {
+                        if (confirm('Tem certeza que deseja excluir este registro?')) {
+                            records = records.filter(rec => rec.id !== id);
+                            saveRecords();
+                            renderTable();
+                            alert('Registro excluído com sucesso!');
+                        }
+                    }
+                }
+            });
+
+            cancelEditBtn.addEventListener('click', clearForm);
+
+            // Initial load of records when the page loads
+            loadRecords();
+
+            // --- END NEW FUNCTIONALITY ---
+
+        });
+    </script>
+</body>
+</html>

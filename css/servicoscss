@@ -1,0 +1,218 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f4f8; /* Light background for a clean look */
+    color: #2c3e50; /* Darker text for readability */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom animation for dropdown fade-in */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scaleY(0.9) translateY(-10px); }
+    to { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+    transform-origin: top;
+}
+
+/* Custom scrollbar styling for a consistent look */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 151, 57, 0.6); /* Semi-transparent Brazilian Green */
+    border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 151, 57, 0.1); /* Lighter track */
+}
+
+/* Header Specific Styles */
+.menu-link {
+    transition: color 0.3s ease, transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    border-radius: 0.5rem; /* Slightly rounded for menu items */
+}
+
+.menu-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: #FFCD00; /* Yellow from Brazilian flag */
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease-out;
+}
+
+.menu-link:hover::before {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+/* Cor ativa para o menu, usando o amarelo do Brasil */
+.active-menu {
+    color: #FFCD00 !important; /* Yellow from Brazilian flag */
+}
+.active-menu::before {
+    transform: scaleX(1);
+    background-color: #FFCD00 !important;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1.5rem;
+    color: #374151; /* gray-700 */
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-item:hover {
+    background-color: #fefce8; /* Tailwind yellow-50 */
+    color: #047857; /* Tailwind green-800 */
+    transform: translateX(5px); /* Subtle slide effect on hover */
+}
+
+/* Base dropdown content styles - ENSURE THIS IS DISPLAY NONE BY DEFAULT */
+.dropdown-content {
+    display: none; /* Crucial: Hidden by default */
+    background-color: white;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+    min-width: 220px;
+    flex-direction: column;
+    z-index: 9999; /* High z-index to ensure it's on top */
+    overflow: hidden;
+    opacity: 0; /* Start hidden for animation */
+    transform: scaleY(0.9) translateY(-10px); /* Start slightly scaled for animation */
+    transform-origin: top;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.dropdown-content.active {
+    display: flex; /* Show when active */
+    opacity: 1; /* Fade in */
+    transform: scaleY(1) translateY(0); /* Animate to full size */
+}
+
+/* Styles for the first level dropdowns (Configurações, Plano, OS, Gerenciamento) */
+.header-dropdown-content {
+    position: absolute; 
+    top: 100%; /* Positions it directly below the button */
+    left: 0;
+}
+
+/* Styles for nested dropdowns (like "Veículos" inside "Configurações") */
+.nested-dropdown-content {
+    position: static; /* Allows it to flow within its parent dropdown */
+    box-shadow: none; /* No extra shadow for nested ones */
+    border-radius: 0; /* No rounded corners for nested ones */
+    background-color: #f8fafc; /* Slightly different background for nested */
+    min-width: auto; /* Allow content to dictate width */
+    padding-left: 1rem; /* Indent the nested content */
+    border-top: 1px solid #e2e8f0; /* Subtle separator */
+    border-bottom: 1px solid #e2e8f0;
+    margin-top: 0.5rem; /* Space from parent item */
+}
+
+/* Specific styling for the 'Veículos' button inside 'Configurações' */
+.dropdown-item-nested-trigger {
+    padding: 0.75rem 1.5rem; /* Same padding as other items */
+    color: #374151;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* To push caret to the right */
+    width: 100%; /* Ensure button takes full width */
+    cursor: pointer;
+    background-color: transparent; /* Remove default button background */
+    border: none; /* Remove default button border */
+    text-align: left; /* Align text to the left */
+}
+
+.dropdown-item-nested-trigger:hover {
+    background-color: #fefce8;
+    color: #047857;
+    transform: translateX(5px);
+}
+
+.dropdown-item-nested-trigger .caret-icon {
+    margin-left: auto; /* Push caret to the right */
+    margin-right: 0;
+}
+
+/* Style for caret icon rotation */
+.caret-icon {
+    transition: transform 0.3s ease;
+}
+
+.caret-icon.rotate {
+    transform: rotate(180deg); /* Default for caret-down */
+}
+/* Specific rotation for caret-right */
+.caret-icon.ph-caret-right.rotate {
+    transform: rotate(90deg); /* To point down */
+}
+
+/* Specific styles for the mobile menu icon */
+.menu-icon {
+    cursor: pointer;
+    display: none; /* Hidden by default on larger screens */
+    font-size: 2rem;
+    color: white;
+}
+
+/* Adjustments for smaller screens (e.g., mobile) */
+@media (max-width: 768px) {
+    .menu-icon {
+        display: block; /* Show menu icon on small screens */
+    }
+
+    nav {
+        display: none; /* Hide navigation links by default on small screens */
+        flex-direction: column;
+        width: 100%;
+        background-color: #004d40; /* Darker green for mobile nav background */
+        position: absolute;
+        top: 6rem; /* Position below header */
+        left: 0;
+        padding: 1rem 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    nav.active {
+        display: flex; /* Show navigation when active */
+    }
+
+    .dropdown {
+        width: 100%; /* Full width for dropdown on mobile */
+    }
+
+    .dropdown-content {
+        position: static; /* Allows dropdown to flow in document */
+        width: 100%;
+        box-shadow: none; /* No shadow for nested mobile dropdown */
+        margin-top: 0;
+        border-radius: 0; /* No rounded corners for mobile nested dropdown */
+    }
+    .nested-dropdown-content {
+        padding-left: 0; /* No extra indent on mobile for nested dropdown */
+        margin-top: 0;
+        border: none; /* No borders for mobile nested dropdown */
+    }
+}

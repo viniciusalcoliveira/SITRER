@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Dropdown specific styles */
+        .dropdown-content, .submenu-content {
+            display: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+            transform: translateY(-10px); /* Initial state for main dropdowns */
+        }
+        .dropdown-content.active, .submenu-content.active {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0); /* Final state for main dropdowns */
+        }
+
+        /* Apply specific animation classes based on menu type */
+        #menu-configuracoes.active, #menu-plano.active, #menu-os.active, #menu-gerenciamento.active, #alertDropdown.active {
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top;
+        }
+        #menu-veiculos-submenu.active, #menu-servicos-submenu.active {
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block;
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        .dropdown-content {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            position: absolute;
+            top: 100%;
+            left: 0; /* Default to left for general dropdowns */
+            background-color: white;
+            border-radius: 0.75rem;
+            min-width: 220px;
+            z-index: 9999; /* High z-index for dropdowns */
+            flex-direction: column;
+        }
+
+        /* Specific alignment for the alert dropdown */
+        #alertDropdown {
+            left: auto; /* Allow auto positioning */
+            right: 0;  /* Align to the right of its parent */
+        }
+
+        .submenu-content {
+            position: absolute;
+            top: 0;
+            left: 100%; /* Opens to the right */
+            min-width: 220px;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 10000; /* Even higher z-index for submenus */
+            flex-direction: column;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        /* Caret rotation for header dropdowns */
+        .menu-link .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg);
+        }
+
+        /* Caret rotation for submenus */
+        .submenu-trigger .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Or 0deg if you want it to point down */
+        }
+
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) {
+            header {
+                padding: 1rem;
+            }
+            .md\:flex-row { flex-direction: column; }
+            .md\:mb-0 { margin-bottom: 1rem; }
+            nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .dropdown-content, .submenu-content {
+                position: static !important;
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0;
+                padding-left: 1rem;
+                transform: none; /* Reset transform for static positioning */
+                animation: none !important; /* Disable animations on mobile for static elements */
+            }
+            .submenu-content {
+                border-left: none;
+                padding-left: 2rem;
+            }
+
+            /* Reset caret for mobile, only rotate when expanded */
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important;
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(180deg) !important;
+            }
+        }
+
+        /* Filter sidebar styles */
+        #filterSidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 320px; /* Default desktop width */
+            background-color: #ffffff;
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+            transform: translateX(100%); /* Hidden by default */
+            transition: transform 0.3s ease-in-out;
+            padding: 24px;
+            z-index: 10000; /* Ensure it's on top of everything */
+            overflow-y: auto;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        #filterSidebar.sidebar-open {
+            transform: translateX(0); /* Visible */
+        }
+
+        @media (max-width: 767px) {
+            #filterSidebar {
+                width: 100%; /* Take full width on small screens */
+                max-width: 100%; /* Ensure it doesn't exceed 100% */
+                padding: 16px; /* Slightly less padding for smaller screens */
+            }
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000; /* Higher than sidebar */
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        /* Specific styles for modal elements */
+        .status-icon-summary {
+            font-size: 2.5rem;
+            padding: 0.75rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+        .status-icon-summary.green { background-color: #dcfce7; color: #16a34a; }
+        .status-icon-summary.yellow { background-color: #fef9c3; color: #eab308; }
+        .status-icon-summary.red { background-color: #fee2e2; color: #ef4444; }
+
+        .chart-container {
+            position: relative;
+            height: 350px; /* Fixed height for charts */
+            width: 100%;
+        }
+        @media (max-width: 767px) {
+            .chart-container { height: 250px; }
+        }
+    </style>
+</head>
+<body>
+
+   <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { /* Used for main menus now */
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top center;
+        }
+
+        /* Custom animation for dropdown fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right { /* Used for sub-menus now */
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left center;
+        }
+
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Adjust caret rotation for main dropdowns (back to caret-down) */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Points up when open */
+        }
+
+        /* Adjust caret rotation for submenus (still caret-right) */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open */
+        }
+
+        /* Dropdown content positioning for downwards opening (main menus) */
+        .dropdown-content {
+            position: absolute;
+            top: 100%; /* Position directly below the parent button */
+            left: 0;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+        /* Submenu content positioning for side opening (submenus) */
+        .submenu-content {
+            position: absolute;
+            top: 0; /* Align top with parent submenu trigger */
+            left: 100%; /* Position to the right of parent submenu trigger */
+            margin-left: 0.5rem; /* Small gap */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            border-left: 1px solid #e2e8f0; /* Add a subtle left border for visual separation */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+
+        /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Main dropdowns revert to full width and relative positioning for mobile */
+            .dropdown-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 1rem; /* Indent dropdown items */
+                margin-left: 0; /* Remove margin */
+            }
+            /* Submenus also revert to full width and static positioning for mobile */
+            .submenu-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-left: none; /* Remove left border */
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 2rem; /* Further indent nested items */
+                margin-left: 0; /* Remove margin */
+            }
+
+            /* Caret rotations for mobile should be different (pointing down when open) */
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset to default right-pointing */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(90deg) !important; /* Rotate down for consistency in mobile dropdowns */
+            }
+        }
+
+        /* Form styling */
+        .form-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 900px; /* Increased max-width for better multi-column layout */
+        }
+
+        .form-container h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a; /* green-600 */
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-container h1 .ph {
+            font-size: 2.25rem; /* Larger icon for heading */
+        }
+
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155; /* slate-700 */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-group label .ph {
+            font-size: 1.125rem; /* Icon size for labels */
+        }
+
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select { /* Added select */
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #475569; /* slate-700 */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: white; /* Ensure consistent background */
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus { /* Added select */
+            outline: none;
+            border-color: #16a34a; /* green-600 */
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); /* green-600 with opacity */
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .radio-group div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-group input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.2s ease;
+        }
+
+        .radio-group input[type="radio"]:checked {
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .radio-group input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.75rem;
+            height: 0.75rem;
+            background-color: #16a34a; /* green-600 */
+            border-radius: 50%;
+        }
+
+        .radio-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 0.375rem; /* rounded-md */
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            background-color: #16a34a; /* green-600 */
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .checkbox-group input[type="checkbox"]:checked::after {
+            content: '\2713'; /* Checkmark character */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: bold;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        #btnCadastrarCompartimento { /* Renamed for clarity */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 2rem;
+        }
+
+        #btnCadastrarCompartimento:hover {
+            background-color: #15803d; /* green-700 */
+            transform: translateY(-1px);
+        }
+
+        #btnCadastrarCompartimento:active {
+            transform: translateY(0);
+        }
+
+        #btnCancelEdit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 1rem; /* Space between submit and cancel */
+        }
+
+        #btnCancelEdit:hover {
+            background-color: #dc2626; /* red-600 */
+            transform: translateY(-1px);
+        }
+
+        #btnCancelEdit:active {
+            transform: translateY(0);
+        }
+
+        /* Listing Area for Compartments */
+        .listing-area {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .listing-area h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .listing-area h2 .ph {
+            font-size: 2.25rem;
+        }
+
+        #compartmentsList .empty-state {
+            text-align: center;
+            color: #6b7280; /* gray-500 */
+            padding: 2rem;
+            border: 1px dashed #d1d5db; /* gray-300 */
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Thinner Compartment Item Styling */
+        .compartment-item {
+            display: flex;
+            justify-content: space-between; /* Content left, actions right */
+            align-items: center; /* Vertically center content */
+            background-color: #f8fafc; /* slate-50 */
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem; /* Reduced vertical padding */
+            margin-bottom: 0.75rem; /* Reduced margin between items */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 1rem; /* Gap between content and buttons if they wrap */
+        }
+
+        .compartment-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .compartment-item h3 {
+            font-size: 1.25rem; /* Slightly smaller font for compactness */
+            font-weight: 600;
+            color: #1e293b; /* slate-800 */
+            margin-bottom: 0; /* Remove margin */
+            padding-bottom: 0; /* Remove padding */
+            border-bottom: none; /* Remove border */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-grow: 1; /* Allow content to grow */
+        }
+        .compartment-item h3 .ph {
+            font-size: 1.5rem; /* Adjust icon size */
+            color: #16a34a;
+        }
+
+        .compartment-item .actions {
+            display: flex;
+            gap: 0.5rem; /* Smaller gap between buttons */
+            margin-top: 0; /* Remove margin */
+            padding-top: 0; /* Remove padding */
+            border-top: none; /* Remove border */
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        .compartment-item .delete-btn,
+        .compartment-item .edit-btn { /* Style for both buttons */
+            background-color: #dc2626; /* red-600 */
+            color: white;
+            padding: 0.4rem 0.8rem; /* Even smaller padding for buttons */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem; /* Smaller gap for button icons */
+            font-size: 0.875rem; /* Smaller font for buttons */
+        }
+
+        .compartment-item .edit-btn {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .compartment-item .edit-btn:hover {
+            background-color: #1d4ed8; /* blue-700 */
+            transform: translateY(-1px);
+        }
+        .compartment-item .edit-btn:active {
+            transform: translateY(0);
+        }
+
+        .compartment-item .delete-btn:hover {
+            background-color: #b91c1c; /* red-700 */
+            transform: translateY(-1px);
+        }
+
+        .compartment-item .delete-btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            display: none; /* Hidden by default */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert.success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            border: 1px solid #34d399; /* green-400 */
+        }
+
+        .alert.error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+            border: 1px solid #f87171; /* red-400 */
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #f8fafc; /* Changed to slate-50 to match other elements */
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            max-height: 90vh; /* Limit modal height */
+            overflow-y: auto; /* Enable scrolling for long content */
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-content input[type="text"] {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .modal-actions button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+
+        .modal-actions .btn-cancel {
+            background-color: #e2e8f0; /* slate-200 */
+            color: #334155; /* slate-700 */
+        }
+        .modal-actions .btn-cancel:hover {
+            background-color: #cbd5e1; /* slate-300 */
+        }
+
+        .modal-actions .btn-save {
+            background-color: #16a34a; /* green-600 */
+            color: white;
+        }
+        .modal-actions .btn-save:hover {
+            background-color: #15803d; /* green-700 */
+        }
+
+        /* Edit Modal Specific Styles */
+        #editCompartmentModal .modal-content {
+            max-width: 600px; /* Wider for edit fields */
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+
+    // Função para definir o link de menu ativo
+    function setActiveMenuLink() {
+        // Remove classes ativas de todos os links de menu, botões de dropdown e itens de dropdown
+        document.querySelectorAll('.menu-link').forEach(link => {
+            link.classList.remove('active-menu');
+        });
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.classList.remove('active-menu-dropdown-item');
+        });
+        document.querySelectorAll('.submenu-trigger').forEach(trigger => {
+            trigger.classList.remove('active-menu-submenu-trigger');
+        });
+
+        // Obtém o nome do arquivo da página atual
+        const currentPage = window.location.pathname.split('/').pop();
+
+        // Destaca o link do Dashboard se for a página atual ou a raiz
+        if (currentPage === 'dashboard.html' || currentPage === '') {
+            const dashboardLink = document.querySelector('a[href="dashboard.html"]');
+            if (dashboardLink) {
+                dashboardLink.classList.add('active-menu');
+            }
+        } else {
+            // Itera por todos os dropdowns para encontrar links ativos
+            dropdowns.forEach(dropdown => {
+                const dropdownContent = dropdown.querySelector('.dropdown-content');
+                const parentButton = dropdown.querySelector('button[aria-haspopup="true"]');
+
+                if (dropdownContent) {
+                    // Verifica itens diretos do dropdown
+                    const dropdownItems = dropdownContent.querySelectorAll(':scope > a.dropdown-item');
+                    dropdownItems.forEach(item => {
+                        if (item.getAttribute('href') === currentPage) {
+                            item.classList.add('active-menu-dropdown-item');
+                            if (parentButton) {
+                                parentButton.classList.add('active-menu');
+                            }
+                        }
+                    });
+
+                    // Verifica itens de submenu
+                    const submenuTriggers = dropdownContent.querySelectorAll('.submenu-trigger');
+                    submenuTriggers.forEach(trigger => {
+                        const submenuContent = trigger.nextElementSibling;
+                        if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+                            const submenuItems = submenuContent.querySelectorAll('.dropdown-item');
+                            submenuItems.forEach(item => {
+                                if (item.getAttribute('href') === currentPage) {
+                                    item.classList.add('active-menu-dropdown-item');
+                                    trigger.classList.add('active-menu-submenu-trigger');
+                                    if (parentButton) {
+                                        parentButton.classList.add('active-menu'); // Destaca o botão principal do dropdown
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Retorno para links de nível superior não-dropdown (como "Segurança")
+            document.querySelectorAll('nav > a.menu-link').forEach(link => {
+                if (link.getAttribute('href') === currentPage && !link.closest('.dropdown')) {
+                    link.classList.add('active-menu');
+                }
+            });
+        }
+    }
+
+    // Chama a função ao carregar a página
+    setActiveMenuLink();
+
+    // --- Lógica de Dropdown e Submenu ---
+    dropdowns.forEach(dropdown => {
+        const button = dropdown.querySelector('button[aria-haspopup="true"]');
+        const dropdownContent = dropdown.querySelector('.dropdown-content');
+
+        if (button && dropdownContent) {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation(); // Impede que o clique no documento feche imediatamente
+                // Fecha outros dropdowns abertos
+                dropdowns.forEach(otherDropdown => {
+                    const otherDropdownContent = otherDropdown.querySelector('.dropdown-content');
+                    const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                    if (otherDropdown !== dropdown && otherDropdownContent && !otherDropdownContent.classList.contains('hidden')) {
+                        otherDropdownContent.classList.add('hidden');
+                        otherDropdownContent.classList.remove('animate-fade-in-down');
+                        if (otherButton) {
+                            otherButton.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                });
+
+                // Alterna o dropdown atual
+                dropdownContent.classList.toggle('hidden');
+                dropdownContent.classList.toggle('animate-fade-in-down');
+                button.setAttribute('aria-expanded', dropdownContent.classList.contains('hidden') ? 'false' : 'true');
+
+                // Fecha quaisquer submenus abertos dentro deste dropdown quando seu menu principal é alternado
+                const openSubmenus = dropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                openSubmenus.forEach(submenu => {
+                    submenu.classList.add('hidden');
+                    submenu.classList.remove('animate-fade-in-right');
+                    const submenuTrigger = submenu.previousElementSibling;
+                    if (submenuTrigger && submenuTrigger.hasAttribute('aria-expanded')) {
+                        submenuTrigger.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Impede que cliques dentro do dropdown o fechem
+            dropdownContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+    });
+
+    // Fecha dropdowns ao clicar fora
+    document.addEventListener('click', function(event) {
+        dropdowns.forEach(dropdown => {
+            const dropdownContent = dropdown.querySelector('.dropdown-content');
+            const button = dropdown.querySelector('button[aria-haspopup="true"]');
+            // Verifica se o clique foi fora do botão e do conteúdo do dropdown
+            if (dropdownContent && button && !dropdown.contains(event.target)) {
+                dropdownContent.classList.add('hidden');
+                dropdownContent.classList.remove('animate-fade-in-down');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+
+    // Lógica do submenu
+    const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+    submenuTriggers.forEach(trigger => {
+        const submenuContent = trigger.nextElementSibling; // O conteúdo do submenu
+        if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+            trigger.addEventListener('click', function(event) {
+                event.stopPropagation(); // Impede que o dropdown pai feche
+
+                // Fecha outros submenus abertos dentro do mesmo dropdown pai
+                const parentDropdownContent = trigger.closest('.dropdown-content');
+                if (parentDropdownContent) {
+                    const otherSubmenus = parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                    otherSubmenus.forEach(otherSubmenu => {
+                        const otherTrigger = otherSubmenu.previousElementSibling;
+                        if (otherSubmenu !== submenuContent && otherTrigger) {
+                            otherSubmenu.classList.add('hidden');
+                            otherSubmenu.classList.remove('animate-fade-in-right');
+                            otherTrigger.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+                }
+
+                // Alterna o submenu atual
+                submenuContent.classList.toggle('hidden');
+                submenuContent.classList.toggle('animate-fade-in-right');
+                trigger.setAttribute('aria-expanded', submenuContent.classList.contains('hidden') ? 'false' : 'true');
+            });
+
+            // Impede que cliques dentro do submenu o fechem
+            submenuContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+    });
+
+    // Lógica do botão do sino de alerta
+    const alertBellButton = document.getElementById('alertBellButton');
+    const alertDropdown = document.getElementById('alertDropdown');
+    if (alertBellButton && alertDropdown) {
+        alertBellButton.addEventListener('click', function(event) {
+            event.stopPropagation(); // Impede que este clique se propague para o documento
+            alertDropdown.classList.toggle('hidden');
+            alertDropdown.classList.toggle('animate-fade-in-down');
+            alertBellButton.setAttribute('aria-expanded', alertDropdown.classList.contains('hidden') ? 'false' : 'true');
+        });
+
+        alertDropdown.addEventListener('click', function(event) {
+            event.stopPropagation(); // Impede que cliques *dentro* do dropdown o fechem
+        });
+    }
+
+    // --- CARREGAMENTO INICIAL E CONFIGURAÇÃO ---
+    // A função `populateTipoCompartimentoSelect()` e `displayCompartments()` devem ser definidas em outro lugar
+    // ou podem ser removidas se não forem relevantes para o seu cabeçalho.
+    // populateTipoCompartimentoSelect();
+    // displayCompartments();
+});
+
+function logout() {
+    localStorage.removeItem('logado');
+    window.location.replace('login.html');
+}
+
+// Verifica o status de login imediatamente
+(function() {
+    if (localStorage.getItem('logado') !== 'true' && window.location.pathname.split('/').pop() !== 'login.html') {
+        window.location.replace('login.html');
+    }
+})();
+</script>
+    <aside id="filterSidebar">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center">
+                <i class="ph ph-funnel text-blue-600 text-3xl mr-3"></i> Filtros
+            </h2>
+            <button onclick="hideFilterSidebar()" class="text-gray-500 hover:text-gray-800 transition-colors text-3xl" aria-label="Fechar filtros">
+                <i class="ph ph-x-circle"></i>
+            </button>
+        </div>
+        <div class="space-y-6">
+            <div>
+                <label for="periodo" class="block text-md font-semibold mb-2 text-gray-700">Período:</label>
+                <select id="periodo" class="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                    <option value="7d">Últimos 7 dias</option>
+                    <option value="30d">Últimos 30 dias</option>
+                    <option value="90d">Últimos 90 dias</option>
+                    <option value="180d">Últimos 180 dias</option>
+                    <option value="365d">Últimos 365 dias</option>
+                </select>
+            </div>
+            <div>
+                <label for="status" class="block text-md font-semibold mb-2 text-gray-700">Status:</label>
+                <select id="status" class="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                    <option value="all">Todos</option>
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                    <option value="Em Manutenção">Em Manutenção</option>
+                    <option value="Indisponível">Indisponível</option>
+                </select>
+            </div>
+            <div>
+                <label for="categoria" class="block text-md font-semibold mb-2 text-gray-700">Categoria:</label>
+                <select id="categoria" class="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                    <option value="all">Todas</option>
+                    <option value="Caminhao">Caminhões</option>
+                    <option value="Maquina">Máquinas</option>
+                    <option value="Onibus">Ônibus</option>
+                    <option value="Trator">Tratores</option>
+                    <option value="Van">Vans</option>
+                    <option value="Carro">Carros</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-md font-semibold mb-2 text-gray-700">Data Personalizada:</label>
+                <div class="mt-1 flex flex-col gap-3">
+                    <input type="date" id="dataInicio" class="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                    <input type="date" id="dataFim" class="w-full p-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg">
+                </div>
+            </div>
+            <div class="flex justify-center mt-6">
+                <button onclick="aplicarFiltros()" class="w-full bg-blue-600 text-white font-bold text-lg py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md flex items-center justify-center">
+                    <i class="ph ph-magnifying-glass text-xl mr-2"></i> Aplicar Filtros
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
+        <main class="flex-1 p-6 md:p-8 space-y-8 overflow-y-auto">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                <h1 class="font-extrabold text-5xl text-green-800 tracking-wide select-none text-center sm:text-left">Dashboard BFM Frotas</h1>
+                <button onclick="showFilterSidebar()" class="bg-blue-600 text-white font-bold text-lg py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md flex items-center justify-center whitespace-nowrap">
+                    <i class="ph ph-funnel text-xl mr-2"></i> Abrir Filtros
+                </button>
+            </div>
+            <p class="text-lg text-gray-700 mb-8 text-center sm:text-left">Visão geral e análises do seu gerenciamento de frotas.</p>
+
+            <p id="ultimaAtualizacao" class="text-md text-right text-gray-600 flex items-center justify-end">
+                <i class="ph ph-clock text-green-600 text-xl mr-2"></i> Última atualização: <span class="font-semibold ml-1">Carregando...</span>
+            </p>
+
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8" aria-label="Indicadores Chave de Performance">
+                <div class="p-6 rounded-2xl bg-gradient-to-br from-green-600 to-green-800 text-white shadow-xl flex flex-col justify-between transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-lg font-medium">Custo Total</p>
+                        <i class="ph ph-currency-dollar text-4xl opacity-75"></i>
+                    </div>
+                    <h2 id="kpiCustoTotal" class="text-4xl font-extrabold">R$ 0</h2>
+                    <p class="text-sm opacity-90 mt-2">Gasto bruto no período</p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-xl flex flex-col justify-between transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-lg font-medium">Ordens de Serviço (OS)</p>
+                        <i class="ph ph-clipboard-text text-4xl opacity-75"></i>
+                    </div>
+                    <h2 id="kpiPedidos" class="text-4xl font-extrabold">0</h2>
+                    <p class="text-sm opacity-90 mt-2">Total de OS geradas</p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-gradient-to-br from-yellow-500 to-yellow-700 text-green-900 shadow-xl flex flex-col justify-between transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-lg font-medium">Veículos Ativos</p>
+                        <i class="ph ph-truck text-green-900 text-4xl opacity-75"></i>
+                    </div>
+                    <h2 id="kpiVeiculosAtivos" class="text-4xl font-extrabold">0</h2>
+                    <p class="text-sm opacity-90 mt-2">Caminhões e máquinas operacionais</p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 text-white shadow-xl flex flex-col justify-between transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-lg font-medium">Manutenções Pendentes</p>
+                        <i class="ph ph-warning-octagon text-4xl opacity-75"></i>
+                    </div>
+                    <h2 id="kpiManutencoesPendentes" class="text-4xl font-extrabold">0</h2>
+                    <p class="text-sm opacity-90 mt-2">Manutenções agendadas ou atrasadas</p>
+                </div>
+            </section>
+
+            <div class="flex flex-col sm:flex-row justify-end gap-4 mb-8">
+                <button onclick="showFleetStatusModal()" class="bg-yellow-500 text-green-900 font-bold text-lg py-3 px-8 rounded-lg hover:bg-yellow-600 transition-colors duration-300 shadow-md flex items-center justify-center">
+                    <i class="ph ph-truck-trailer text-xl mr-2"></i> Visualizar Frota
+                </button>
+                <button onclick="atualizarDashboard()" class="bg-green-800 text-white font-bold text-lg py-3 px-8 rounded-lg hover:bg-green-700 transition-colors duration-300 shadow-md flex items-center justify-center">
+                    <i class="ph ph-arrow-counter-clockwise text-xl mr-2"></i> Atualizar Dados
+                </button>
+            </div>
+
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-8" aria-label="Gráficos de Desempenho">
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 flex flex-col items-center justify-center">
+                    <h3 class="text-2xl font-bold text-green-900 mb-6 flex items-center">
+                        <i class="ph ph-chart-line text-green-600 text-3xl mr-3"></i> Custo Mensal
+                    </h3>
+                    <div class="chart-container"> <canvas id="graficoCusto"></canvas> </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 flex flex-col items-center justify-center">
+                    <h3 class="text-2xl font-bold text-green-900 mb-6 flex items-center">
+                        <i class="ph ph-chart-pie text-green-600 text-3xl mr-3"></i> Frotas por Tipo
+                    </h3>
+                    <div class="chart-container"> <canvas id="graficoCategorias"></canvas> </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-lg border border-gray-100 flex flex-col items-center justify-center">
+                    <div class="flex flex-col sm:flex-row justify-between items-center w-full mb-6">
+                        <h3 class="text-2xl font-bold text-green-900 flex items-center mb-4 sm:mb-0">
+                            <i class="ph ph-chart-bar text-green-600 text-3xl mr-3"></i> Análise de Custos
+                        </h3>
+                        <select id="personalizado" class="p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                            <option value="gastos">Gastos</option>
+                            <option value="investimentos">Investimentos</option>
+                        </select>
+                    </div>
+                    <div class="chart-container"> <canvas id="graficoPersonalizado"></canvas> </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="fleetStatusModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-3xl font-bold text-green-900 flex items-center">
+                    <i class="ph ph-truck text-green-600 text-4xl mr-3"></i> Status Detalhado da Frota
+                </h2>
+                <button onclick="hideFleetStatusModal()" class="text-gray-500 hover:text-gray-800 transition-colors text-3xl" aria-label="Fechar status da frota">
+                    <i class="ph ph-x-circle"></i>
+                </button>
+            </div>
+
+            <p id="modalDescription" class="sr-only">Exibe a contagem e o status individual de cada veículo da frota.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-green-50 p-4 rounded-xl shadow-sm flex items-center">
+                    <div class="status-icon-summary green">
+                        <i class="ph ph-truck"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg text-green-700">Disponíveis</h4>
+                        <p class="text-2xl font-bold text-green-900" id="fleetAvailable">0</p>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-xl shadow-sm flex items-center">
+                    <div class="status-icon-summary yellow">
+                        <i class="ph ph-wrench"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg text-yellow-700">Em Manutenção</h4>
+                        <p class="text-2xl font-bold text-yellow-900" id="fleetMaintenance">0</p>
+                    </div>
+                </div>
+                <div class="bg-red-50 p-4 rounded-xl shadow-sm flex items-center">
+                    <div class="status-icon-summary red">
+                        <i class="ph ph-truck-slash"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg text-red-700">Indisponíveis</h4>
+                        <p class="text-2xl font-bold text-red-900" id="fleetUnavailable">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="individualTrucksContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2">
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- Local Storage Data Management ---
+    const LOCAL_STORAGE_KEY = 'bfm_fleet_data';
+
+    // Default mock data if nothing is in localStorage
+    const defaultBFMFleetData = {
+        vehicles: [
+            { id: 1, nome: 'Caminhão 101', marca: 'Volvo', modelo: 'FH 540', tipoVeiculo: 'Caminhao', combustivel: 'Diesel', placa: 'ABC-1234', ano: 2020, km: 150000, hr: null, status: 'Ativo', necessitaPMP: true, necessitaPL: true, observacoes: 'Primeiro veículo de teste.', revenue: 10000, cost: 500 },
+            { id: 2, nome: 'Máquina XL-200', marca: 'Caterpillar', modelo: '320D', tipoVeiculo: 'Maquina', combustivel: 'Diesel', placa: null, ano: 2018, km: 8500, hr: 8500, status: 'Em Manutenção', necessitaPMP: true, necessitaPL: true, observacoes: 'Máquina aguardando peças.', revenue: 8000, cost: 1200 },
+            { id: 3, nome: 'Van Frota 05', marca: 'Renault', modelo: 'Master', tipoVeiculo: 'Van', combustivel: 'Diesel', placa: 'XYZ-5678', ano: 2022, km: 45000, hr: null, status: 'Ativo', necessitaPMP: true, necessitaPL: false, observacoes: 'Para entregas rápidas.', revenue: 5000, cost: 200 },
+            { id: 4, nome: 'Carro Leve 01', marca: 'Fiat', modelo: 'Strada', tipoVeiculo: 'Carro', combustivel: 'Flex', placa: 'PQR-9012', ano: 2023, km: 12000, hr: null, status: 'Ativo', necessitaPMP: false, necessitaPL: false, observacoes: 'Veículo de apoio.', revenue: 3000, cost: 100 },
+            { id: 5, nome: 'Scania R450', marca: 'Scania', modelo: 'R450', tipoVeiculo: 'Caminhao', combustivel: 'Diesel', placa: 'DEF-5678', ano: 2019, km: 200000, hr: null, status: 'Indisponível', necessitaPMP: true, necessitaPL: true, observacoes: 'Problema no motor.', revenue: 0, cost: 2000 },
+            { id: 6, nome: 'Ônibus Urbano', marca: 'Mercedes-Benz', modelo: 'OF 1721', tipoVeiculo: 'Onibus', combustivel: 'Diesel', placa: 'BUS-1234', ano: 2015, km: 500000, hr: null, status: 'Ativo', necessitaPMP: true, necessitaPL: true, observacoes: 'Linha de transporte urbano.', revenue: 7000, cost: 400 }
+        ],
+        kpis: {
+            custoTotal: 8500.00, // Example cost data
+            pedidos: 250,
+            manutencoesPendentes: 10
+        },
+        custoMensal: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            data: [5000, 6000, 4500, 7000, 5500, 6500, 8000, 5200, 7500, 5800, 6200, 8500]
+        },
+        analiseCustos: {
+            gastos: {
+                labels: ['Pneus', 'Combustível', 'Mão de Obra', 'Peças', 'Manutenção Preventiva', 'Seguros'],
+                data: [25000, 50000, 15000, 30000, 18000, 22000]
+            },
+            investimentos: {
+                labels: ['Novos Veículos', 'Atualização Software', 'Treinamento', 'Infraestrutura'],
+                data: [80000, 10000, 5000, 15000]
+            }
+        }
+    };
+
+    function getBFMFleetData() {
+        const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedData) {
+            return JSON.parse(storedData);
+        } else {
+            // Initialize with default data and save to localStorage
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(defaultBFMFleetData));
+            return defaultBFMFleetData;
+        }
+    }
+
+    function saveBFMFleetData(data) {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // --- Chart Instances ---
+    let graficoCustoChart;
+    let graficoCategoriasChart;
+    let graficoPersonalizadoChart;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check login status
+        if (localStorage.getItem('logado') !== 'true') {
+            window.location.replace('login.html');
+            return;
+        }
+
+        updateLastUpdateTime();
+
+        // --- Event listeners for ALL dropdown triggers (main menu and submenus) ---
+        document.querySelectorAll('.dropdown > button, .submenu-trigger').forEach(button => {
+            button.addEventListener('click', (event) => {
+                // Determine the target dropdown content based on the button clicked
+                const dropdownContent = button.nextElementSibling;
+                if (dropdownContent && (dropdownContent.classList.contains('dropdown-content') || dropdownContent.classList.contains('submenu-content'))) {
+                    toggleDropdown(dropdownContent.id, event.currentTarget);
+                }
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (event) => {
+            // Iterate over all active dropdowns/submenus
+            document.querySelectorAll('.dropdown-content.active, .submenu-content.active').forEach(content => {
+                // Check if the click occurred inside the currently active dropdown's parent (.dropdown or .group for submenu)
+                // If not, and the click target is not the trigger button itself, then hide it.
+                const parentContainer = content.closest('.dropdown, .relative.group'); // Account for both main dropdowns and submenu groups
+                if (!parentContainer.contains(event.target)) { // Check if click is outside the parent container
+                    hideDropdown(content.id);
+                }
+            });
+        });
+
+        // Add event listener for the cost analysis filter
+        document.getElementById('personalizado').addEventListener('change', atualizarAnaliseCustos);
+        document.getElementById('periodo').addEventListener('change', aplicarFiltros);
+        document.getElementById('status').addEventListener('change', aplicarFiltros);
+        document.getElementById('categoria').addEventListener('change', aplicarFiltros);
+        document.getElementById('dataInicio').addEventListener('change', aplicarFiltros);
+        document.getElementById('dataFim').addEventListener('change', aplicarFiltros);
+
+        // Load initial dashboard data
+        atualizarDashboard();
+    });
+
+    function updateLastUpdateTime() {
+        const now = new Date();
+        document.getElementById('ultimaAtualizacao').querySelector('span').textContent =
+            now.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    // --- Dropdown Menu Functions ---
+    function toggleDropdown(id, triggerButton) {
+        const dropdownContent = document.getElementById(id);
+        if (!dropdownContent) return;
+
+        const isCurrentlyActive = dropdownContent.classList.contains('active');
+
+        // Close all other open dropdowns/submenus that are not ancestors or the target itself
+        document.querySelectorAll('.dropdown-content.active, .submenu-content.active').forEach(openDropdown => {
+            // Check if the openDropdown is an ancestor of the current triggerButton or the target dropdownContent
+            const isAncestorOfTrigger = triggerButton.closest(`#${openDropdown.id}`);
+            const isAncestorOfTarget = dropdownContent.closest(`#${openDropdown.id}`); // This is to ensure submenus don't close their parent main dropdown
+
+            // If the openDropdown is not the target, and not an ancestor of the trigger or target
+            if (openDropdown.id !== id && !isAncestorOfTrigger && !isAncestorOfTarget) {
+                hideDropdown(openDropdown.id);
+            }
+        });
+
+        // Toggle the target dropdown
+        if (isCurrentlyActive) {
+            hideDropdown(id);
+        } else {
+            dropdownContent.classList.add('active');
+            triggerButton.setAttribute('aria-expanded', 'true');
+        }
+
+        // Toggle caret rotation for the specific button
+        const caretIcon = triggerButton.querySelector('.ph-caret-down, .ph-caret-right');
+        if (caretIcon) {
+            if (dropdownContent.classList.contains('dropdown-content')) { // Main dropdowns
+                caretIcon.style.transform = isCurrentlyActive ? 'rotate(0deg)' : 'rotate(180deg)';
+            } else if (dropdownContent.classList.contains('submenu-content')) { // Submenus
+                caretIcon.style.transform = isCurrentlyActive ? 'rotate(0deg)' : 'rotate(90deg)'; // Submenus point right, rotate down
+            }
+        }
+    }
+
+    function hideDropdown(id) {
+        const dropdownContent = document.getElementById(id);
+        if (dropdownContent) {
+            dropdownContent.classList.remove('active');
+            const triggerButton = dropdownContent.previousElementSibling;
+            if (triggerButton && (triggerButton.classList.contains('menu-link') || triggerButton.classList.contains('submenu-trigger'))) {
+                triggerButton.setAttribute('aria-expanded', 'false');
+                const caretIcon = triggerButton.querySelector('.ph-caret-down, .ph-caret-right');
+                if (caretIcon) {
+                    caretIcon.style.transform = 'rotate(0deg)'; // Reset caret rotation
+                }
+            }
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('logado');
+        window.location.replace('login.html');
+    }
+
+    // --- Dashboard Functions ---
+    function atualizarDashboard() {
+        const data = getBFMFleetData();
+
+        // Update KPIs
+        document.getElementById('kpiCustoTotal').textContent = `R$ ${data.kpis.custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('kpiPedidos').textContent = data.kpis.pedidos;
+        
+        const activeVehicles = data.vehicles.filter(v => v.status === 'Ativo').length;
+        document.getElementById('kpiVeiculosAtivos').textContent = activeVehicles;
+        document.getElementById('kpiManutencoesPendentes').textContent = data.kpis.manutencoesPendentes;
+
+        // Render Charts
+        renderCustoChart(data.custoMensal);
+        renderCategoriasChart(data.vehicles);
+        atualizarAnaliseCustos(); // Render the personalized chart based on current selection
+
+        updateLastUpdateTime(); // Update the last update time
+    }
+
+    function aplicarFiltros() {
+        console.log('Filtros aplicados:', {
+            periodo: document.getElementById('periodo').value,
+            status: document.getElementById('status').value,
+            categoria: document.getElementById('categoria').value,
+            dataInicio: document.getElementById('dataInicio').value,
+            dataFim: document.getElementById('dataFim').value
+        });
+
+        const currentData = getBFMFleetData();
+        let filteredVehicles = [...currentData.vehicles]; // Use a copy for filtering
+
+        const selectedStatus = document.getElementById('status').value;
+        if (selectedStatus !== 'all') {
+            filteredVehicles = filteredVehicles.filter(v => v.status === selectedStatus);
+        }
+
+        const selectedCategory = document.getElementById('categoria').value;
+        if (selectedCategory !== 'all') {
+            filteredVehicles = filteredVehicles.filter(v => v.tipoVeiculo === selectedCategory);
+        }
+
+        // Update vehicle counts and total cost based on filters
+        const kpiActiveVehicles = filteredVehicles.filter(v => v.status === 'Ativo').length;
+        document.getElementById('kpiVeiculosAtivos').textContent = kpiActiveVehicles;
+        
+        const totalCusto = filteredVehicles.reduce((sum, v) => sum + (v.cost || 0), 0);
+        document.getElementById('kpiCustoTotal').textContent = `R$ ${totalCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+        renderCategoriasChart(filteredVehicles);
+        // Note: For 'Custo Mensal' and 'Análise de Custos', filtering by date would require more complex
+        // data manipulation or a backend call. Here, we only apply to vehicle-related KPIs/charts.
+    }
+
+    // --- Chart Rendering Functions ---
+    function renderCustoChart(custoData) {
+        if (graficoCustoChart) {
+            graficoCustoChart.destroy();
+        }
+        const ctx = document.getElementById('graficoCusto').getContext('2d');
+        graficoCustoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: custoData.labels,
+                datasets: [{
+                    label: 'Custo (R$)',
+                    data: custoData.data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Histórico de Custo Mensal',
+                        font: { size: 18, weight: 'bold' },
+                        color: '#2c3e50'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Valor (R$)',
+                            font: { size: 14 }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Mês',
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderCategoriasChart(vehiclesData) {
+        if (graficoCategoriasChart) {
+            graficoCategoriasChart.destroy();
+        }
+
+        const categoryCounts = vehiclesData.reduce((acc, vehicle) => {
+            acc[vehicle.tipoVeiculo] = (acc[vehicle.tipoVeiculo] || 0) + 1;
+            return acc;
+        }, {});
+
+        const labels = Object.keys(categoryCounts);
+        const data = Object.values(categoryCounts);
+
+        const backgroundColors = [
+            '#009739', // Brazilian Green (primary)
+            '#FFCD00', // Brazilian Yellow (primary)
+            '#003366', // Darker Blue (similar to the flag)
+            '#A52A2A', // Brown (for variety)
+            '#4B0082', // Indigo (for variety)
+            '#FF8C00', // Dark Orange
+            '#556B2F'  // Dark Olive Green
+        ];
+
+        const ctx = document.getElementById('graficoCategorias').getContext('2d');
+        graficoCategoriasChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors.slice(0, labels.length),
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Distribuição de Frotas por Tipo de Veículo',
+                        font: { size: 18, weight: 'bold' },
+                        color: '#2c3e50'
+                    },
+                    legend: {
+                        position: 'right',
+                        align: 'center',
+                        labels: {
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function atualizarAnaliseCustos() {
+        const tipoAnalise = document.getElementById('personalizado').value;
+        const data = getBFMFleetData().analiseCustos[tipoAnalise];
+
+        if (graficoPersonalizadoChart) {
+            graficoPersonalizadoChart.destroy();
+        }
+
+        const ctx = document.getElementById('graficoPersonalizado').getContext('2d');
+        graficoPersonalizadoChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: tipoAnalise === 'gastos' ? 'Gastos (R$)' : 'Investimentos (R$)',
+                    data: data.data,
+                    backgroundColor: tipoAnalise === 'gastos' ? 'rgba(255, 99, 132, 0.6)' : 'rgba(54, 162, 235, 0.6)',
+                    borderColor: tipoAnalise === 'gastos' ? 'rgba(255, 99, 132, 1)' : 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: tipoAnalise === 'gastos' ? 'Detalhes de Gastos da Frota' : 'Detalhes de Investimentos da Frota',
+                        font: { size: 18, weight: 'bold' },
+                        color: '#2c3e50'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Valor (R$)',
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- Fleet Status Modal Functions ---
+    function showFleetStatusModal() {
+        const modal = document.getElementById('fleetStatusModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling background
+        renderIndividualTrucks();
+    }
+
+    function hideFleetStatusModal() {
+        const modal = document.getElementById('fleetStatusModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Restore scrolling background
+    }
+
+    function renderIndividualTrucks() {
+        const data = getBFMFleetData();
+        const container = document.getElementById('individualTrucksContainer');
+        container.innerHTML = ''; // Clear previous content
+
+        let available = 0;
+        let maintenance = 0;
+        let unavailable = 0;
+
+        data.vehicles.forEach(vehicle => {
+            let statusColorClass = '';
+            let statusIcon = '';
+            let statusText = '';
+
+            switch (vehicle.status) {
+                case 'Ativo':
+                    statusColorClass = 'bg-green-100 border-green-300';
+                    statusIcon = 'ph-check-circle text-green-600';
+                    statusText = 'Disponível';
+                    available++;
+                    break;
+                case 'Em Manutenção':
+                    statusColorClass = 'bg-yellow-100 border-yellow-300';
+                    statusIcon = 'ph-wrench text-yellow-600';
+                    statusText = 'Em Manutenção';
+                    maintenance++;
+                    break;
+                case 'Indisponível':
+                    statusColorClass = 'bg-red-100 border-red-300';
+                    statusIcon = 'ph-x-circle text-red-600';
+                    statusText = 'Indisponível';
+                    unavailable++;
+                    break;
+                default:
+                    statusColorClass = 'bg-gray-100 border-gray-300';
+                    statusIcon = 'ph-question text-gray-600';
+                    statusText = 'Desconhecido';
+                    break;
+            }
+
+            const vehicleCard = `
+                <div class="bg-white p-4 rounded-xl shadow-md border ${statusColorClass} flex items-center space-x-4">
+                    <i class="ph ${statusIcon} text-4xl"></i>
+                    <div>
+                        <h5 class="text-xl font-bold text-gray-800">${vehicle.nome} <span class="text-sm font-normal text-gray-500">(${vehicle.placa || 'N/A'})</span></h5>
+                        <p class="text-gray-600">Modelo: ${vehicle.modelo} - Ano: ${vehicle.ano}</p>
+                        <p class="font-semibold text-sm">Status: <span class="${statusText === 'Disponível' ? 'text-green-700' : statusText === 'Em Manutenção' ? 'text-yellow-700' : 'text-red-700'}">${statusText}</span></p>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += vehicleCard;
+        });
+
+        document.getElementById('fleetAvailable').textContent = available;
+        document.getElementById('fleetMaintenance').textContent = maintenance;
+        document.getElementById('fleetUnavailable').textContent = unavailable;
+    }
+
+    // Function to show the filter sidebar
+    function showFilterSidebar() {
+        const filterSidebar = document.getElementById('filterSidebar');
+        filterSidebar.classList.add('sidebar-open');
+    }
+
+    // Function to explicitly hide the filter sidebar
+    function hideFilterSidebar() {
+        const filterSidebar = document.getElementById('filterSidebar');
+        filterSidebar.classList.remove('sidebar-open');
+    }
+</script>
+</body>
+</html>

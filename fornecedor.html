@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Fornecedores - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* Base styles for the entire body */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+              /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { /* Used for main menus now */
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top center;
+        }
+
+        /* Custom animation for dropdown fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right { /* Used for sub-menus now */
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left center;
+        }
+
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Adjust caret rotation for main dropdowns (back to caret-down) */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Points up when open */
+        }
+
+        /* Adjust caret rotation for submenus (still caret-right) */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open */
+        }
+
+        /* Dropdown content positioning for downwards opening (main menus) */
+        .dropdown-content {
+            position: absolute;
+            top: 100%; /* Position directly below the parent button */
+            left: 0;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+        /* Submenu content positioning for side opening (submenus) */
+        .submenu-content {
+            position: absolute;
+            top: 0; /* Align top with parent submenu trigger */
+            left: 100%; /* Position to the right of parent submenu trigger */
+            margin-left: 0.5rem; /* Small gap */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            border-left: 1px solid #e2e8f0; /* Add a subtle left border for visual separation */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+
+         /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailwind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .dropdown-content {
+                position: static; /* Stack vertically in mobile */
+                width: 100%; /* Take full width */
+                border-top: 1px solid #e2e8f0;
+                border-left: none; /* No left border */
+                box-shadow: none; /* No shadow */
+                border-radius: 0; /* No radius */
+                padding-left: 1rem; /* Add some padding */
+            }
+            .submenu-content {
+                position: static; /* Stack vertically in mobile */
+                width: 100%; /* Take full width */
+                border-top: 1px solid #e2e8f0;
+                border-left: none; /* No left border */
+                box-shadow: none; /* No shadow */
+                border-radius: 0; /* No radius */
+                padding-left: 2rem; /* Indent sub-submenus */
+            }
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset rotation for mobile */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(180deg) !important; /* Still rotate down for consistency in mobile dropdowns */
+            }
+        }
+
+        /* --- Styles for the main content (form and table) --- */
+        .form-container, .list-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group input[type="number"],
+        .form-group textarea, /* Added textarea */
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #475569;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="email"]:focus,
+        .form-group input[type="tel"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus, /* Added textarea */
+        .form-group select:focus {
+            outline: none;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+        }
+
+        .form-group input[readonly] {
+            background-color: #e2e8f0;
+            cursor: not-allowed;
+        }
+
+        .btn-submit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: auto;
+            padding: 1rem 1.5rem;
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 2rem;
+        }
+
+        .btn-submit:hover {
+            background-color: #15803d;
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-edit {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .btn-edit:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-delete {
+            background-color: #ef4444;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+
+        /* Modal Specific Styles */
+        .modal, .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.active, .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 700px; /* Increased max-width for more fields */
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content, .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .modal-close-button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close-button:hover {
+            color: #334155;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+
+        .btn-cancel {
+            background-color: #64748b;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+        .btn-cancel:hover {
+            background-color: #475569;
+        }
+
+        .btn-save-modal {
+            background-color: #16a34a;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+        .btn-save-modal:hover {
+            background-color: #15803d;
+        }
+
+        /* Feedback Message (Toast) */
+        #userFeedback {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            color: white;
+            z-index: 10002;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        #userFeedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Classes for feedback types */
+        #userFeedback.bg-green-100 { background-color: #d1fae5; color: #065f46; }
+        #userFeedback.bg-red-100 { background-color: #fee2e2; color: #991b1b; }
+        #userFeedback.bg-yellow-100 { background-color: #fffbeb; color: #92400e; }
+        #userFeedback.bg-blue-100 { background-color: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Header script loaded and DOM fully parsed."); // Debug log
+
+            // --- Helper Function for Toggling Visibility and ARIA Attributes ---
+            function toggleVisibility(element, isHidden, animationClass, triggerElement = null) {
+                if (isHidden) {
+                    element.classList.add('hidden');
+                    if (animationClass) element.classList.remove(animationClass);
+                } else {
+                    element.classList.remove('hidden');
+                    if (animationClass) element.classList.add(animationClass);
+                }
+                if (triggerElement) {
+                    triggerElement.setAttribute('aria-expanded', (!isHidden).toString());
+                }
+            }
+
+            // --- Dropdown Logic (Main Navigation Items) ---
+            document.querySelectorAll('.dropdown > button[aria-haspopup="true"]').forEach(button => {
+                const dropdownContent = button.nextElementSibling; // Assumes dropdown-content is the immediate sibling
+                if (!dropdownContent || !dropdownContent.classList.contains('dropdown-content')) {
+                    console.warn("Dropdown content not found for button:", button);
+                    return;
+                }
+
+                button.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevent document click from immediately closing
+
+                    // >>> ADICIONADO PARA DEPURAR CLIQUE <<<
+                    console.log("Botão clicado:", this.textContent.trim());
+                    console.log("Estado atual do menu antes de toggle:", dropdownContent.classList.contains('hidden') ? 'fechado' : 'aberto');
+                    // <<< FIM DA ADIÇÃO DE DEPURAÇÃO >>>
+
+                    // Close other open main dropdowns
+                    document.querySelectorAll('.dropdown-content:not(.hidden)').forEach(openDropdown => {
+                        if (openDropdown !== dropdownContent) {
+                            const openButton = openDropdown.previousElementSibling;
+                            toggleVisibility(openDropdown, true, 'animate-fade-in-down', openButton);
+                            // Also close any submenus within other main dropdowns
+                            openDropdown.querySelectorAll('.submenu-content:not(.hidden)').forEach(openSubmenu => {
+                                const openSubmenuTrigger = openSubmenu.previousElementSibling;
+                                toggleVisibility(openSubmenu, true, 'animate-fade-in-right', openSubmenuTrigger);
+                            });
+                        }
+                    });
+
+                    // Toggle current dropdown
+                    const isHidden = dropdownContent.classList.contains('hidden');
+                    toggleVisibility(dropdownContent, !isHidden, 'animate-fade-in-down', button);
+
+                    // If opening, ensure submenus are closed, if closing, close submenus too
+                    if (isHidden) { // If it was hidden and is now opening
+                        dropdownContent.querySelectorAll('.submenu-content:not(.hidden)').forEach(submenu => {
+                            const submenuTrigger = submenu.previousElementSibling;
+                            toggleVisibility(submenu, true, 'animate-fade-in-right', submenuTrigger);
+                        });
+                    }
+                });
+
+                // Prevent clicks inside the main dropdown from closing it
+                dropdownContent.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            });
+
+            // --- Submenu Logic ---
+            document.querySelectorAll('.submenu-trigger').forEach(trigger => {
+                const submenuContent = trigger.nextElementSibling; // Assumes submenu-content is the immediate sibling
+                if (!submenuContent || !submenuContent.classList.contains('submenu-content')) {
+                    console.warn("Submenu content not found for trigger:", trigger);
+                    return;
+                }
+
+                trigger.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevent parent dropdown from closing
+
+                    // Close other open submenus within the same parent dropdown
+                    const parentDropdownContent = trigger.closest('.dropdown-content');
+                    if (parentDropdownContent) {
+                        parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)').forEach(otherSubmenu => {
+                            if (otherSubmenu !== submenuContent) {
+                                const otherTrigger = otherSubmenu.previousElementSibling;
+                                toggleVisibility(otherSubmenu, true, 'animate-fade-in-right', otherTrigger);
+                            }
+                        });
+                    }
+
+                    // Toggle current submenu
+                    const isHidden = submenuContent.classList.contains('hidden');
+                    toggleVisibility(submenuContent, !isHidden, 'animate-fade-in-right', trigger);
+                });
+
+                // Prevent clicks inside submenu from closing it
+                submenuContent.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            });
+
+            // --- Alert Bell Button Logic ---
+            const alertBellButton = document.getElementById('alertBellButton');
+            const alertDropdown = document.getElementById('alertDropdown');
+
+            if (alertBellButton && alertDropdown) {
+                alertBellButton.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevents this click from bubbling up to document
+
+                    // Close any open main dropdowns before opening alert
+                    document.querySelectorAll('.dropdown-content:not(.hidden)').forEach(openDropdown => {
+                        const openButton = openDropdown.previousElementSibling;
+                        toggleVisibility(openDropdown, true, 'animate-fade-in-down', openButton);
+                        openDropdown.querySelectorAll('.submenu-content:not(.hidden)').forEach(openSubmenu => {
+                            const openSubmenuTrigger = openSubmenu.previousElementSibling;
+                            toggleVisibility(openSubmenu, true, 'animate-fade-in-right', openSubmenuTrigger);
+                        });
+                    });
+
+                    const isHidden = alertDropdown.classList.contains('hidden');
+                    toggleVisibility(alertDropdown, !isHidden, 'animate-fade-in-down', alertBellButton);
+                });
+
+                // Prevent clicks inside the alert dropdown from closing it
+                alertDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            }
+
+            // --- Global Click Listener to Close All Popups ---
+            document.addEventListener('click', function(event) {
+                // Close main dropdowns
+                document.querySelectorAll('.dropdown-content:not(.hidden)').forEach(dropdownContent => {
+                    const button = dropdownContent.previousElementSibling;
+                    // Only close if the click was outside the dropdown button and content
+                    if (button && !button.contains(event.target) && !dropdownContent.contains(event.target)) {
+                        toggleVisibility(dropdownContent, true, 'animate-fade-in-down', button);
+                    }
+                });
+
+                // Close submenus (they are handled by parent dropdown closing, but explicit might be safer for edge cases)
+                document.querySelectorAll('.submenu-content:not(.hidden)').forEach(submenuContent => {
+                    const trigger = submenuContent.previousElementSibling;
+                    // Only close if the click was outside the submenu trigger and content
+                    if (trigger && !trigger.contains(event.target) && !submenuContent.contains(event.target)) {
+                        toggleVisibility(submenuContent, true, 'animate-fade-in-right', trigger);
+                    }
+                }
+            );
+
+                // Close alert dropdown
+                if (alertDropdown && !alertDropdown.classList.contains('hidden')) {
+                    if (alertBellButton && !alertBellButton.contains(event.target) && !alertDropdown.contains(event.target)) {
+                        toggleVisibility(alertDropdown, true, 'animate-fade-in-down', alertBellButton);
+                    }
+                }
+            });
+        });
+
+        // --- Logout Function (Global Scope for direct call) ---
+        window.logout = function() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                localStorage.clear(); // Clears all local storage data
+                // window.location.href = 'login.html'; // Redirect to login page
+                alert('Usuário desconectado!');
+            }
+        };
+    </script>
+
+    <main class="flex-1 container mx-auto p-6 pt-10">
+        <h1 class="text-4xl font-extrabold text-green-800 mb-8 text-center">Cadastro de Fornecedores</h1>
+
+        <div class="form-container">
+            <h2 class="text-2xl font-bold text-green-700 mb-6">Adicionar Novo Fornecedor</h2>
+            <form id="supplierForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="form-group">
+                    <label for="name">Nome/Razão Social:</label>
+                    <input type="text" id="name" required placeholder="Nome completo ou Razão Social">
+                </div>
+                <div class="form-group">
+                    <label for="registrationNumber">CNPJ:</label>
+                    <input type="text" id="registrationNumber" pattern="\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}" placeholder="00.000.000/0000-00" title="Formato: 00.000.000/0000-00" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact">Pessoa de Contato:</label>
+                    <input type="text" id="contact" placeholder="Nome do contato principal">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefone:</label>
+                    <input type="tel" id="phone" pattern="\(\d{2}\)\s\d{4,5}\-\d{4}" placeholder="(XX) XXXXX-XXXX" title="Formato: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" placeholder="email@exemplo.com" required>
+                </div>
+                <div class="form-group col-span-1 md:col-span-2 lg:col-span-3">
+                    <label for="address">Endereço Completo:</label>
+                    <input type="text" id="address" placeholder="Rua, Número, Bairro, Cidade, Estado, CEP" required>
+                </div>
+                <div class="form-group col-span-full">
+                    <label for="serviceOffered">Serviço Oferecido:</label>
+                    <textarea id="serviceOffered" rows="4" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" placeholder="Descreva os serviços ou produtos oferecidos pelo fornecedor."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="amountSpent">Valor Gasto (R$):</label>
+                    <input type="number" id="amountSpent" step="0.01" value="0.00">
+                </div>
+                <div class="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center">
+                    <button type="submit" class="btn-submit">
+                        <i class="ph ph-plus-circle text-2xl"></i> Cadastrar Fornecedor
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="list-container">
+            <h2 class="text-2xl font-bold text-green-700 mb-6">Fornecedores Cadastrados</h2>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <input type="text" id="searchSupplier" placeholder="Pesquisar por nome ou CNPJ..." class="flex-1 p-3 border border-gray-300 rounded-lg">
+                <input type="text" id="filterService" placeholder="Filtrar por serviço..." class="p-3 border border-gray-300 rounded-lg">
+            </div>
+
+            <div class="overflow-x-auto">
+                <table id="suppliersTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CNPJ</th>
+                            <th>Contato</th>
+                            <th>Telefone</th>
+                            <th>Email</th>
+                            <th>Endereço</th>
+                            <th>Serviço</th>
+                            <th>Valor Gasto</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+            <p id="noSuppliersMessage" class="text-center text-gray-500 mt-4 hidden">Nenhum fornecedor cadastrado.</p>
+        </div>
+    </main>
+
+    <div id="editSupplierModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Fornecedor</h2>
+                <button class="modal-close-button" onclick="closeModal('editSupplierModal')">&times;</button>
+            </div>
+            <form id="editSupplierForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="edit-name">Nome/Razão Social:</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-registrationNumber">CNPJ:</label>
+                    <input type="text" id="edit-registrationNumber" pattern="\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="edit-contact">Pessoa de Contato:</label>
+                    <input type="text" id="edit-contact">
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone">Telefone:</label>
+                    <input type="tel" id="edit-phone" pattern="\(\d{2}\)\s\d{4,5}\-\d{4}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-email">Email:</label>
+                    <input type="email" id="edit-email" required>
+                </div>
+                <div class="form-group col-span-full">
+                    <label for="edit-address">Endereço Completo:</label>
+                    <input type="text" id="edit-address" required>
+                </div>
+                <div class="form-group col-span-full">
+                    <label for="edit-serviceOffered">Serviço Oferecido:</label>
+                    <textarea id="edit-serviceOffered" rows="4" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-amountSpent">Valor Gasto (R$):</label>
+                    <input type="number" id="edit-amountSpent" step="0.01">
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal('editSupplierModal')">Cancelar</button>
+                <button type="button" class="btn-save-modal" onclick="updateSupplier()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteConfirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmar Exclusão</h2>
+                <button class="modal-close-button" onclick="closeModal('deleteConfirmationModal')">&times;</button>
+            </div>
+            <p class="text-gray-700 text-lg mb-6">Tem certeza que deseja excluir este fornecedor?</p>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal('deleteConfirmationModal')">Cancelar</button>
+                <button type="button" class="btn-delete" id="confirmDeleteButton">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="userFeedback" class="hidden"></div>
+
+    <script>
+        // Data storage
+        let suppliers = JSON.parse(localStorage.getItem('suppliers')) || [];
+
+        // Utility functions
+        function showFeedback(message, type = 'info') {
+            const feedbackDiv = document.getElementById('userFeedback');
+            feedbackDiv.textContent = message;
+            feedbackDiv.className = ''; // Reset classes
+            feedbackDiv.classList.add('show');
+
+            switch (type) {
+                case 'success':
+                    feedbackDiv.classList.add('bg-green-100');
+                    break;
+                case 'error':
+                    feedbackDiv.classList.add('bg-red-100');
+                    break;
+                case 'warning':
+                    feedbackDiv.classList.add('bg-yellow-100');
+                    break;
+                case 'info':
+                default:
+                    feedbackDiv.classList.add('bg-blue-100');
+                    break;
+            }
+
+            setTimeout(() => {
+                feedbackDiv.classList.remove('show');
+            }, 3000);
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function generateUniqueId() {
+            return '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function saveSuppliers() {
+            localStorage.setItem('suppliers', JSON.stringify(suppliers));
+        }
+
+        // --- CRUD Operations ---
+        document.getElementById('supplierForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const id = generateUniqueId();
+            const name = document.getElementById('name').value.trim();
+            const registrationNumber = document.getElementById('registrationNumber').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const serviceOffered = document.getElementById('serviceOffered').value.trim(); // Reads value from textarea
+            const amountSpent = parseFloat(document.getElementById('amountSpent').value) || 0;
+
+            if (!name || !registrationNumber || !phone || !email || !address || !serviceOffered) {
+                showFeedback('Por favor, preencha todos os campos obrigatórios.', 'warning');
+                return;
+            }
+
+            if (!isValidCNPJ(registrationNumber)) {
+                showFeedback('CNPJ inválido. Use o formato XX.XXX.XXX/XXXX-XX.', 'error');
+                return;
+            }
+
+            if (suppliers.some(supplier => supplier.registrationNumber === registrationNumber)) {
+                showFeedback('Um fornecedor com este CNPJ já existe.', 'error');
+                return;
+            }
+
+            const newSupplier = {
+                id,
+                name,
+                registrationNumber,
+                contact,
+                phone,
+                email,
+                address,
+                serviceOffered,
+                amountSpent
+            };
+
+            suppliers.push(newSupplier);
+            saveSuppliers();
+            renderSuppliers();
+            this.reset(); // Clear form
+            showFeedback('Fornecedor adicionado com sucesso!', 'success');
+        });
+
+        function editSupplier(index) {
+            const supplier = suppliers[index];
+            if (!supplier) {
+                showFeedback('Fornecedor não encontrado para edição.', 'error');
+                return;
+            }
+
+            document.getElementById('edit-id').value = supplier.id;
+            document.getElementById('edit-name').value = supplier.name;
+            document.getElementById('edit-registrationNumber').value = supplier.registrationNumber;
+            document.getElementById('edit-contact').value = supplier.contact;
+            document.getElementById('edit-phone').value = supplier.phone;
+            document.getElementById('edit-email').value = supplier.email;
+            document.getElementById('edit-address').value = supplier.address;
+            document.getElementById('edit-serviceOffered').value = supplier.serviceOffered; // Reads value from textarea
+            document.getElementById('edit-amountSpent').value = supplier.amountSpent;
+
+            openModal('editSupplierModal');
+        }
+
+        function updateSupplier() {
+            const id = document.getElementById('edit-id').value;
+            const name = document.getElementById('edit-name').value.trim();
+            const contact = document.getElementById('edit-contact').value.trim();
+            const phone = document.getElementById('edit-phone').value.trim();
+            const email = document.getElementById('edit-email').value.trim();
+            const address = document.getElementById('edit-address').value.trim();
+            const serviceOffered = document.getElementById('edit-serviceOffered').value.trim(); // Reads value from textarea
+            const amountSpent = parseFloat(document.getElementById('edit-amountSpent').value) || 0;
+
+            if (!name || !phone || !email || !address || !serviceOffered) {
+                showFeedback('Por favor, preencha todos os campos obrigatórios.', 'warning');
+                return;
+            }
+
+            const index = suppliers.findIndex(s => s.id === id);
+
+            if (index !== -1) {
+                suppliers[index] = {
+                    ...suppliers[index], // Keep existing properties like registrationNumber (CNPJ is readonly)
+                    name,
+                    contact,
+                    phone,
+                    email,
+                    address,
+                    serviceOffered,
+                    amountSpent
+                };
+                saveSuppliers();
+                renderSuppliers();
+                closeModal('editSupplierModal');
+                showFeedback('Fornecedor atualizado com sucesso!', 'success');
+            } else {
+                showFeedback('Erro: Fornecedor não encontrado para atualização.', 'error');
+            }
+        }
+
+        let supplierToDeleteIndex = -1;
+
+        function confirmDeleteSupplier(index) {
+            supplierToDeleteIndex = index;
+            openModal('deleteConfirmationModal');
+        }
+
+        document.getElementById('confirmDeleteButton').addEventListener('click', () => {
+            if (supplierToDeleteIndex !== -1) {
+                deleteSupplier(supplierToDeleteIndex);
+                supplierToDeleteIndex = -1;
+            }
+            closeModal('deleteConfirmationModal');
+        });
+
+        function deleteSupplier(index) {
+            if (index > -1 && index < suppliers.length) {
+                const deletedName = suppliers[index].name;
+                suppliers.splice(index, 1);
+                saveSuppliers();
+                renderSuppliers();
+                showFeedback(`Fornecedor "${deletedName}" excluído com sucesso.`, 'info');
+            } else {
+                showFeedback('Erro: Fornecedor não encontrado para exclusão.', 'error');
+            }
+        }
+
+        // --- Render Suppliers Table ---
+        function renderSuppliers() {
+            const tableBody = document.querySelector('#suppliersTable tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+            const noSuppliersMessage = document.getElementById('noSuppliersMessage');
+
+            const searchTerm = document.getElementById('searchSupplier').value.toLowerCase();
+            const filterServiceText = document.getElementById('filterService').value.toLowerCase();
+
+            const filteredSuppliers = suppliers.filter(supplier => {
+                const matchesSearch = supplier.name.toLowerCase().includes(searchTerm) ||
+                                      supplier.registrationNumber.includes(searchTerm);
+                const matchesFilter = filterServiceText === '' || supplier.serviceOffered.toLowerCase().includes(filterServiceText);
+                return matchesSearch && matchesFilter;
+            });
+
+            if (filteredSuppliers.length === 0) {
+                noSuppliersMessage.classList.remove('hidden');
+                document.getElementById('suppliersTable').classList.add('hidden'); // Hide table if no results
+            } else {
+                noSuppliersMessage.classList.add('hidden');
+                document.getElementById('suppliersTable').classList.remove('hidden'); // Show table
+                filteredSuppliers.forEach((supplier, index) => {
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${supplier.name}</td>
+                        <td>${supplier.registrationNumber}</td>
+                        <td>${supplier.contact}</td>
+                        <td>${supplier.phone}</td>
+                        <td>${supplier.email}</td>
+                        <td>${supplier.address}</td>
+                        <td>${supplier.serviceOffered}</td>
+                        <td>R$ ${supplier.amountSpent.toFixed(2).replace('.', ',')}</td>
+                        <td class="action-buttons">
+                            <button class="btn-edit" onclick="editSupplier(${suppliers.indexOf(supplier)})">
+                                <i class="ph ph-pencil"></i> Editar
+                            </button>
+                            <button class="btn-delete" onclick="confirmDeleteSupplier(${suppliers.indexOf(supplier)})">
+                                <i class="ph ph-trash"></i> Excluir
+                            </button>
+                        </td>
+                    `;
+                });
+            }
+        }
+
+        // --- Event Listeners for Search and Filter ---
+        document.getElementById('searchSupplier').addEventListener('input', renderSuppliers);
+        document.getElementById('filterService').addEventListener('input', renderSuppliers);
+
+        // --- Input Masking and Validation ---
+        function applyMask(inputElement, mask) {
+            inputElement.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                let maskedValue = '';
+                let k = 0;
+                for (let i = 0; i < mask.length; i++) {
+                    if (k >= value.length) break;
+                    if (mask[i] === 'X') {
+                        maskedValue += value[k++];
+                    } else {
+                        maskedValue += mask[i];
+                    }
+                }
+                e.target.value = maskedValue;
+            });
+        }
+
+        function isValidCNPJ(cnpj) {
+            // Remove non-numeric characters
+            cnpj = cnpj.replace(/[^\d]+/g, '');
+
+            if (cnpj.length !== 14) return false;
+
+            // Reject known invalid CNPJs
+            if (/^(\d)\1{13}$/.test(cnpj)) return false;
+
+            // Validate DVs
+            let size = cnpj.length - 2;
+            let numbers = cnpj.substring(0, size);
+            const digits = cnpj.substring(size);
+            let sum = 0;
+            let pos = size - 7;
+            for (let i = size; i >= 1; i--) {
+                sum += parseInt(numbers.charAt(i - 1)) * (pos--);
+                if (pos < 2) pos = 9;
+            }
+            let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+            if (result !== parseInt(digits.charAt(0))) return false;
+
+            size = size + 1;
+            numbers = cnpj.substring(0, size);
+            sum = 0;
+            pos = size - 7;
+            for (let i = size; i >= 1; i--) {
+                sum += parseInt(numbers.charAt(i - 1)) * (pos--);
+                if (pos < 2) pos = 9;
+            }
+            result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+            if (result !== parseInt(digits.charAt(1))) return false;
+
+            return true;
+        }
+
+        // Apply masks on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            applyMask(document.getElementById('registrationNumber'), 'XX.XXX.XXX/XXXX-XX');
+            applyMask(document.getElementById('phone'), '(XX) XXXXX-XXXX'); // For 9-digit phones
+            // For editing modal
+            applyMask(document.getElementById('edit-phone'), '(XX) XXXXX-XXXX');
+            // CNPJ in edit modal is readonly, so no mask needed there
+            renderSuppliers(); // Initial render of the table
+        });
+    </script>
+</body>
+</html>

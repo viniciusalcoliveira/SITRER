@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerar Ordem de Serviço - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+              /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { /* Used for main menus now */
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top center;
+        }
+
+        /* Custom animation for dropdown fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right { /* Used for sub-menus now */
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left center;
+        }
+
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Adjust caret rotation for main dropdowns (back to caret-down) */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Points up when open */
+        }
+
+        /* Adjust caret rotation for submenus (still caret-right) */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open */
+        }
+
+        /* Dropdown content positioning for downwards opening (main menus) */
+        .dropdown-content {
+            position: absolute;
+            top: 100%; /* Position directly below the parent button */
+            left: 0;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+        /* Submenu content positioning for side opening (submenus) */
+        .submenu-content {
+            position: absolute;
+            top: 0; /* Align top with parent submenu trigger */
+            left: 100%; /* Position to the right of parent submenu trigger */
+            margin-left: 0.5rem; /* Small gap */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            border-left: 1px solid #e2e8f0; /* Add a subtle left border for visual separation */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+
+         /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Main dropdowns revert to full width and relative positioning for mobile */
+            .dropdown-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 1rem; /* Indent dropdown items */
+            }
+            /* Submenus also revert to full width and static positioning for mobile */
+            .submenu-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-left: none; /* Remove left border */
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 2rem; /* Further indent nested items */
+            }
+
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset rotation for mobile */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(180deg) !important; /* Still rotate down for consistency in mobile dropdowns */
+            }
+        }
+
+        /* Form styling */
+        .form-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155; /* slate-700 */
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group input[type="time"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #475569; /* slate-700 */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group input[type="time"]:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #16a34a; /* green-600 */
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); /* green-600 with opacity */
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .radio-group div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-group input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.2s ease;
+        }
+
+        .radio-group input[type="radio"]:checked {
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .radio-group input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.75rem;
+            height: 0.75rem;
+            background-color: #16a34a; /* green-600 */
+            border-radius: 50%;
+        }
+
+        .radio-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 0.375rem; /* rounded-md */
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            background-color: #16a34a; /* green-600 */
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .checkbox-group input[type="checkbox"]:checked::after {
+            content: '\2713'; /* Checkmark character */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: bold;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .btn-submit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 2rem;
+        }
+
+        .btn-submit:hover {
+            background-color: #15803d; /* green-700 */
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .checklist-items-container {
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: #f8fafc; /* slate-50 */
+            margin-bottom: 1.5rem;
+        }
+
+        .checklist-item {
+            /* Changed to flexbox for better control over dynamic width/height */
+            display: flex;
+            flex-direction: column; /* Stack children vertically */
+            gap: 1rem; /* Gap between description and other fields */
+            border-bottom: 1px dashed #cbd5e1; /* slate-300 */
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .checklist-item .form-group {
+            margin-bottom: 0; /* Remove bottom margin for groups within checklist items */
+        }
+        
+        /* New inner grid for Prazo and Custo */
+        .checklist-item-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem 1.5rem;
+            align-items: flex-end;
+        }
+
+
+        .btn-add-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 1.5rem;
+            border: none;
+        }
+
+        .btn-add-item:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+
+        .btn-remove-item {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+            width: fit-content;
+            justify-self: end; /* Align to the end of its grid column */
+            white-space: nowrap;
+        }
+
+        .btn-remove-item:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+        .add-modal-button {
+            background-color: #22c55e; /* Green */
+            color: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .add-modal-button:hover {
+            background-color: #16a34a;
+        }
+
+        @media (max-width: 768px) {
+            .checklist-item {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .checklist-item-details {
+                grid-template-columns: 1fr;
+            }
+            .btn-remove-item {
+                width: 100%;
+                justify-self: stretch;
+            }
+        }
+
+        /* Plan List Section */
+        .plan-list-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 3rem;
+        }
+        .plan-list-item {
+            display: flex;
+            flex-direction: column;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .plan-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.5rem 1rem;
+            flex-grow: 1;
+        }
+        .plan-details span {
+            font-weight: 500;
+            color: #475569;
+        }
+        .plan-details strong {
+            color: #1e293b;
+        }
+        .plan-details .text-green-700 {
+            font-weight: 600;
+        }
+        
+        .btn-integrate-api {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #22c55e; /* green-500 */
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 1rem;
+            border: none;
+        }
+
+        .btn-integrate-api:hover {
+            background-color: #16a34a; /* green-600 */
+        }
+
+        /* Modal Specific Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001; /* Above other elements */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 800px; /* Adjust max width for content */
+            max-height: 90vh; /* Limit height to prevent overflow */
+            overflow-y: auto; /* Enable scrolling for long forms */
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.open .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .modal-close-button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #64748b; /* slate-500 */
+            transition: color 0.2s ease;
+        }
+
+        .modal-close-button:hover {
+            color: #334155; /* slate-700 */
+        }
+
+        .modal-checklist-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: #f8fafc;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-checklist-item {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem 1.5rem;
+            align-items: flex-end;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-checklist-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .modal-checklist-item .form-group {
+            margin-bottom: 0;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+
+        .btn-cancel {
+            background-color: #64748b; /* slate-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+
+        .btn-cancel:hover {
+            background-color: #475569; /* slate-700 */
+        }
+
+        .btn-save-modal {
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+
+        .btn-save-modal:hover {
+            background-color: #15803d; /* green-700 */
+        }
+
+        /* Styles specific to agendamento.html, adjust if necessary */
+        .chart-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a; /* green-600 */
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .vehicle-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+        }
+        .vehicle-list-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .vehicle-info strong {
+            color: #334155;
+        }
+        .vehicle-info span {
+            color: #475569;
+        }
+        .vehicle-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .vehicle-actions button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .edit-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+        }
+        .edit-btn:hover {
+            background-color: #2563eb;
+        }
+        .delete-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
+        .search-container {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+        .search-container input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #475569;
+        }
+        .search-container button {
+            background-color: #16a34a;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+        .search-container button:hover {
+            background-color: #15803d;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+        .filter-buttons button {
+            background-color: #64748b; /* slate-500 */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+        .filter-buttons button.active {
+            background-color: #16a34a; /* green-600 */
+        }
+        .filter-buttons button:hover:not(.active) {
+            background-color: #475569; /* slate-700 */
+        }
+
+        .chart-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .chart-section {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Styles for lists within modals */
+        .modal-list-container {
+            margin-top: 1.5rem;
+            max-height: 200px; /* Limit height for scrollability */
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #f8fafc;
+        }
+
+        .modal-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .modal-list-item span {
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .modal-list-item .delete-btn-small {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.3rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-list-item .delete-btn-small:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+
+    </style>
+</head>
+<body class="overflow-x-hidden">
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+<main class="flex-grow container mx-auto p-4 md:p-6">
+    <h1 class="section-title">Gerar Ordem de Serviço</h1>
+
+    <div id="feedbackMessage" class="hidden fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-lg font-semibold z-50 animate-fade-in-down" role="alert">
+        Mensagem de Feedback
+    </div>
+
+    <div class="form-container">
+        <form id="agendamentoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-group">
+                <label for="osNumber">Número da O.S.</label>
+                <input type="text" id="osNumber" name="osNumber" class="w-full p-2 border border-gray-300 rounded" readonly placeholder="Gerado Automaticamente" />
+            </div>
+
+            <div class="form-group">
+                <label for="vehicleSelect">Veículo (Placa - Modelo)</label>
+                <select id="vehicleSelect" name="vehicle" class="w-full p-2 border border-gray-300 rounded" required>
+                    <option value="">Selecione um veículo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tipoAgendamento">Tipo de Agendamento</label>
+                <select id="tipoAgendamento" name="tipoAgendamento" class="w-full p-2 border border-gray-300 rounded" required>
+                    <option value="">Selecione o Tipo de Agendamento</option>
+                    <option value="Preventiva">Preventiva</option>
+                    <option value="inspecao">Inspeção</option>
+                    <option value="Lubrificacao">Lubrificação</option>
+                    <option value="limpeza">Limpeza</option>
+                    <option value="outros">Outros</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dataAgendamento">Data do Agendamento</label>
+                <input type="date" id="dataAgendamento" name="dataAgendamento" class="w-full p-2 border border-gray-300 rounded" required />
+            </div>
+
+            <div class="form-group">
+                <label for="horaAgendamento">Hora do Agendamento</label>
+                <input type="time" id="horaAgendamento" name="horaAgendamento" class="w-full p-2 border border-gray-300 rounded" required />
+            </div>
+
+            <div class="form-group">
+                <label for="combustivelSelect">Tipo de Combustível</label>
+                <div class="flex items-center gap-2">
+                    <select id="combustivelSelect" name="combustivel" class="w-full p-2 border border-gray-300 rounded" required>
+                        <option value="">Selecione o Tipo de Combustível</option>
+                    </select>
+                    <button type="button" id="addFuelTypeBtn" class="add-modal-button">
+                        <i class="ph ph-plus text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="oficinaSelect">Oficina</label>
+                <div class="flex items-center gap-2">
+                    <select id="oficinaSelect" name="oficina" class="w-full p-2 border border-gray-300 rounded" required>
+                        <option value="">Selecione a Oficina</option>
+                    </select>
+                    <button type="button" id="addOficinaBtn" class="add-modal-button">
+                        <i class="ph ph-plus text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="leituraAtual">Leitura Atual (Hodômetro/Horímetro)</label>
+                <input type="number" id="leituraAtual" name="leituraAtual" class="w-full p-2 border border-gray-300 rounded" placeholder="Ex: 50000 (Hodômetro) ou 1200 (Horímetro)" required />
+            </div>
+
+           
+
+            <div class="form-group">
+                <label for="prioridadeSelect">Prioridade</label>
+                <select id="prioridadeSelect" name="prioridade" class="w-full p-2 border border-gray-300 rounded" required>
+                    <option value="">Selecione a Prioridade</option>
+                </select>
+            </div>
+
+            <div class="form-group md:col-span-2">
+                <label for="observacoes">Observações</label>
+                <textarea id="observacoes" name="observacoes" rows="3" class="w-full p-2 border border-gray-300 rounded" placeholder="Detalhes adicionais sobre o agendamento..."></textarea>
+            </div>
+
+            <div class="form-group md:col-span-2">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Checklist da Ordem de Serviço</h3>
+                <div id="checklistItemsContainer" class="checklist-items-container">
+                    </div>
+                <button type="button" id="addChecklistItemBtn" class="btn-add-item">
+                    <i class="ph ph-plus text-xl"></i> Adicionar Item à Checklist
+                </button>
+            </div>
+
+            <div class="md:col-span-2 flex justify-end gap-4">
+                <button type="reset" class="btn-cancel">
+                    <i class="ph ph-x-circle text-lg"></i> Limpar
+                </button>
+                <button type="submit" class="btn-submit">
+                    <i class="ph ph-calendar-check text-xl"></i> Gerar Ordem de Serviço
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="plan-list-container mt-8">
+        <h2 class="section-title">Ordens de Serviço Agendadas</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg shadow overflow-hidden">
+                <thead class="bg-gray-100 border-b border-gray-200">
+                    <tr>
+                        <th class="text-left p-3 text-gray-600 font-semibold">O.S. Nº</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Veículo</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Data</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Hora</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Tipo</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Oficina</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Técnico</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Status</th>
+                        <th class="text-left p-3 text-gray-600 font-semibold">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="appointmentsTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center p-4 text-gray-500">Nenhuma Ordem de Serviço agendada.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div id="addFuelTypeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Adicionar Novo Tipo de Combustível</h2>
+            <button class="modal-close-button" onclick="closeModal('addFuelTypeModal')">&times;</button>
+        </div>
+        <div class="p-8">
+            <div class="mb-4">
+                <label for="newFuelTypeName" class="block font-semibold mb-2">Nome do Combustível:</label>
+                <input type="text" id="newFuelTypeName" placeholder="Ex: Diesel, Gasolina, Etanol" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+            </div>
+            <button type="button" onclick="addNewFuelType()" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                Adicionar Combustível
+            </button>
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold mb-3 text-gray-800">Tipos Cadastrados:</h4>
+                <div id="fuelTypeListContainer" class="modal-list-container">
+                    <ul id="fuelTypeList" class="divide-y divide-gray-100">
+                        </ul>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="closeModal('addFuelTypeModal')" class="btn-cancel">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<div id="addOficinaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Adicionar Nova Oficina</h2>
+            <button class="modal-close-button" onclick="closeModal('addOficinaModal')">&times;</button>
+        </div>
+        <div class="p-8">
+            <div class="mb-4">
+                <label for="newOficinaName" class="block font-semibold mb-2">Nome da Oficina:</label>
+                <input type="text" id="newOficinaName" placeholder="Ex: Oficina Central, Auto Mecânica Silva" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+            </div>
+            <button type="button" onclick="addNewOficina()" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                Adicionar Oficina
+            </button>
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold mb-3 text-gray-800">Oficinas Cadastradas:</h4>
+                <div id="oficinaListContainer" class="modal-list-container">
+                    <ul id="oficinaList" class="divide-y divide-gray-100">
+                        </ul>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="closeModal('addOficinaModal')" class="btn-cancel">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<div id="editAppointmentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Editar Ordem de Serviço</h2>
+            <button class="modal-close-button" onclick="closeModal('editAppointmentModal')">&times;</button>
+        </div>
+        <form id="editAppointmentForm">
+            <input type="hidden" id="editAppointmentId">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label for="editOsNumber">Número da O.S.</label>
+                    <input type="text" id="editOsNumber" class="w-full p-2 border border-gray-300 rounded" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="editVehicleSelect">Veículo (Placa - Modelo)</label>
+                    <select id="editVehicleSelect" class="w-full p-2 border border-gray-300 rounded" required disabled>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editTipoAgendamento">Tipo de Agendamento</label>
+                    <select id="editTipoAgendamento" class="w-full p-2 border border-gray-300 rounded" required>
+                        <option value="Preventiva">Preventiva</option>
+                        <option value="inspecao">Inspeção</option>
+                        <option value="Lubrificacao">Lubrificação</option>
+                        <option value="limpeza">Limpeza</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editDataAgendamento">Data do Agendamento</label>
+                    <input type="date" id="editDataAgendamento" class="w-full p-2 border border-gray-300 rounded" required />
+                </div>
+                <div class="form-group">
+                    <label for="editHoraAgendamento">Hora do Agendamento</label>
+                    <input type="time" id="editHoraAgendamento" class="w-full p-2 border border-gray-300 rounded" required />
+                </div>
+                <div class="form-group">
+                    <label for="editCombustivelSelect">Tipo de Combustível</label>
+                    <select id="editCombustivelSelect" class="w-full p-2 border border-gray-300 rounded" required disabled>
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label for="editOficinaSelect">Oficina</label>
+                    <select id="editOficinaSelect" class="w-full p-2 border border-gray-300 rounded" required>
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label for="editLeituraAtual">Leitura Atual</label>
+                    <input type="number" id="editLeituraAtual" class="w-full p-2 border border-gray-300 rounded" required />
+                </div>
+               
+                <div class="form-group">
+                    <label for="editPrioridadeSelect">Prioridade</label>
+                    <select id="editPrioridadeSelect" class="w-full p-2 border border-gray-300 rounded" required>
+                        </select>
+                </div>
+                <div class="form-group md:col-span-2">
+                    <label for="editObservacoes">Observações</label>
+                    <textarea id="editObservacoes" rows="3" class="w-full p-2 border border-gray-300 rounded"></textarea>
+                </div>
+                <div class="form-group md:col-span-2">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Checklist da Ordem de Serviço</h3>
+                    <div id="editChecklistItemsContainer" class="checklist-items-container">
+                        </div>
+                    <button type="button" id="addEditChecklistItemBtn" class="btn-add-item">
+                        <i class="ph ph-plus text-xl"></i> Adicionar Item à Checklist
+                    </button>
+                </div>
+                <div class="form-group md:col-span-2">
+                    <label for="editStatusOs">Status da O.S.</label>
+                    <select id="editStatusOs" class="w-full p-2 border border-gray-300 rounded" required>
+                        <option value="Agendado">Agendado</option>
+                        <option value="Em Andamento">Em Andamento</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('editAppointmentModal')" class="btn-cancel">Cancelar</button>
+                <button type="submit" class="btn-save-modal">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dropdown functionality
+        document.querySelectorAll('.dropdown > button').forEach(button => {
+            button.addEventListener('click', () => {
+                const dropdownContent = button.nextElementSibling;
+                const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+                // Close all other dropdowns
+                document.querySelectorAll('.dropdown > button').forEach(otherButton => {
+                    if (otherButton !== button) {
+                        otherButton.setAttribute('aria-expanded', 'false');
+                        otherButton.nextElementSibling.classList.add('hidden');
+                        otherButton.nextElementSibling.classList.remove('animate-fade-in-down');
+                    }
+                });
+
+                // Close all submenus
+                document.querySelectorAll('.submenu-content').forEach(submenu => {
+                    submenu.classList.add('hidden');
+                    submenu.classList.remove('animate-fade-in-right');
+                    submenu.previousElementSibling.setAttribute('aria-expanded', 'false');
+                });
+
+                // Toggle current dropdown
+                if (isExpanded) {
+                    button.setAttribute('aria-expanded', 'false');
+                    dropdownContent.classList.add('hidden');
+                    dropdownContent.classList.remove('animate-fade-in-down');
+                } else {
+                    button.setAttribute('aria-expanded', 'true');
+                    dropdownContent.classList.remove('hidden');
+                    dropdownContent.classList.add('animate-fade-in-down');
+                }
+            });
+        });
+
+        document.querySelectorAll('.submenu-trigger').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent main dropdown from closing
+                const submenuContent = button.nextElementSibling;
+                const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+                // Close other submenus within the same parent
+                button.closest('.dropdown-content').querySelectorAll('.submenu-trigger').forEach(otherSubmenuButton => {
+                    if (otherSubmenuButton !== button) {
+                        otherSubmenuButton.setAttribute('aria-expanded', 'false');
+                        otherSubmenuButton.nextElementSibling.classList.add('hidden');
+                        otherSubmenuButton.nextElementSibling.classList.remove('animate-fade-in-right');
+                    }
+                });
+
+                // Toggle current submenu
+                if (isExpanded) {
+                    button.setAttribute('aria-expanded', 'false');
+                    submenuContent.classList.add('hidden');
+                    submenuContent.classList.remove('animate-fade-in-right');
+                } else {
+                    button.setAttribute('aria-expanded', 'true');
+                    submenuContent.classList.remove('hidden');
+                    submenuContent.classList.add('animate-fade-in-right');
+                }
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', (event) => {
+            if (!event.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown > button').forEach(button => {
+                    button.setAttribute('aria-expanded', 'false');
+                    button.nextElementSibling.classList.add('hidden');
+                    button.nextElementSibling.classList.remove('animate-fade-in-down');
+                });
+                document.querySelectorAll('.submenu-content').forEach(submenu => {
+                    submenu.classList.add('hidden');
+                    submenu.classList.remove('animate-fade-in-right');
+                    submenu.previousElementSibling.setAttribute('aria-expanded', 'false');
+                });
+            }
+        });
+
+        // Highlight active menu item (for full page highlighted)
+        const currentPath = window.location.pathname.split('/').pop();
+        document.querySelectorAll('nav a.menu-link, nav a.dropdown-item').forEach(link => {
+            if (link.href.includes(currentPath) && currentPath !== "") {
+                link.classList.add('active-menu');
+                // For dropdown items, also activate their parent menu links
+                let parentDropdownContent = link.closest('.dropdown-content');
+                while (parentDropdownContent) {
+                    const parentButton = parentDropdownContent.previousElementSibling; // This is the menu-link button
+                    if (parentButton && parentButton.classList.contains('menu-link')) {
+                        parentButton.classList.add('active-menu');
+                        // Ensure the dropdown is open if it's the active path's parent
+                        parentButton.setAttribute('aria-expanded', 'true');
+                        parentDropdownContent.classList.remove('hidden');
+                        parentDropdownContent.classList.add('animate-fade-in-down');
+                    }
+                    parentDropdownContent = parentDropdownContent.parentNode.closest('.dropdown-content');
+                }
+            }
+        });
+
+        // --- Core Agendamento Logic ---
+        const agendamentoForm = document.getElementById('agendamentoForm');
+        const osNumberInput = document.getElementById('osNumber');
+        const vehicleSelect = document.getElementById('vehicleSelect');
+        const combustivelSelect = document.getElementById('combustivelSelect');
+        const oficinaSelect = document.getElementById('oficinaSelect');
+       
+        const prioridadeSelect = document.getElementById('prioridadeSelect');
+        const checklistItemsContainer = document.getElementById('checklistItemsContainer');
+        const addChecklistItemBtn = document.getElementById('addChecklistItemBtn');
+        const appointmentsTableBody = document.getElementById('appointmentsTableBody');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+
+        // Modals elements
+        const addFuelTypeModal = document.getElementById('addFuelTypeModal');
+        const newFuelTypeNameInput = document.getElementById('newFuelTypeName');
+        const fuelTypeList = document.getElementById('fuelTypeList');
+        const addFuelTypeBtn = document.getElementById('addFuelTypeBtn');
+        const addOficinaModal = document.getElementById('addOficinaModal');
+        const newOficinaNameInput = document.getElementById('newOficinaName');
+        const oficinaList = document.getElementById('oficinaList');
+        const addOficinaBtn = document.getElementById('addOficinaBtn');
+        const editAppointmentModal = document.getElementById('editAppointmentModal');
+        const editAppointmentForm = document.getElementById('editAppointmentForm');
+
+
+        let appointments = JSON.parse(localStorage.getItem('agendamentos')) || [];
+        let vehicles = JSON.parse(localStorage.getItem('vehicles')) || []; // From cadastroveiculos.html
+        let fuelTypes = JSON.parse(localStorage.getItem('cadastros_combustivel')) || [];
+        let offices = JSON.parse(localStorage.getItem('cadastros_oficina')) || []; // Assuming 'oficinas' stores offices
+      
+        let services = JSON.parse(localStorage.getItem('cadastros_acoes')) || []; // Assuming 'cadastros_acoes' for services/actions
+        let priorities = ['Baixa', 'Média', 'Alta', 'Urgente']; // Static for now, or fetch if dynamic
+
+        let checklistItemCounter = 0; // To ensure unique IDs for checklist items
+
+        // Helper function to save data to localStorage
+        function saveData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // Helper function to show feedback messages
+        function showFeedback(message, isSuccess = true) {
+            feedbackMessage.textContent = message;
+            if (isSuccess) {
+                feedbackMessage.className = 'hidden fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-lg font-semibold z-50 animate-fade-in-down';
+            } else {
+                feedbackMessage.className = 'hidden fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg text-lg font-semibold z-50 animate-fade-in-down';
+            }
+            feedbackMessage.classList.remove('hidden');
+            setTimeout(() => {
+                feedbackMessage.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- OS Number Generation ---
+        function generateOSNumber() {
+            const now = new Date();
+            const year = now.getFullYear().toString().slice(-2);
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            // Get last OS number and increment or start from 1
+            const lastOsNumber = localStorage.getItem('lastOsNumber') ? parseInt(localStorage.getItem('lastOsNumber')) : 0;
+            const newSequence = lastOsNumber + 1;
+            localStorage.setItem('lastOsNumber', newSequence.toString()); // Save the incremented value
+            osNumberInput.value = `OS-${year}${month}${day}-${newSequence.toString().padStart(4, '0')}`;
+        }
+
+        // --- Populate Selects ---
+        function populateVehicleSelect() {
+            vehicleSelect.innerHTML = '<option value="">Selecione um veículo</option>';
+            vehicles.forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle.id;
+                option.textContent = `${vehicle.placa} - ${vehicle.modelo} - ${vehicle.combustivel}`;
+                option.dataset.fuelType = vehicle.combustivel; // Store fuel type in dataset
+                vehicleSelect.appendChild(option);
+            });
+        }
+
+        function populateCombustivelSelect(selectedFuelType = null) {
+            combustivelSelect.innerHTML = '<option value="">Selecione o Tipo de Combustível</option>';
+            let uniqueFuelTypes = new Set();
+            // Add fuel types from registered vehicles
+            vehicles.forEach(vehicle => {
+                if (vehicle.combustivel) {
+                    uniqueFuelTypes.add(vehicle.combustivel);
+                }
+            });
+            // Add fuel types from dedicated fuelTypes list (if any)
+            fuelTypes.forEach(fuel => {
+                if (fuel.name) {
+                    uniqueFuelTypes.add(fuel.name);
+                }
+            });
+
+            Array.from(uniqueFuelTypes).sort().forEach(fuel => {
+                const option = document.createElement('option');
+                option.value = fuel;
+                option.textContent = fuel;
+                combustivelSelect.appendChild(option);
+            });
+
+            if (selectedFuelType) {
+                combustivelSelect.value = selectedFuelType;
+                combustivelSelect.disabled = true; // Disable if automatically set by vehicle selection
+            } else {
+                combustivelSelect.disabled = false; // Enable if no vehicle selected or for manual selection
+            }
+        }
+
+        function populateOficinaSelect() {
+            oficinaSelect.innerHTML = '<option value="">Selecione a Oficina</option>';
+            offices.forEach(oficina => {
+                const option = document.createElement('option');
+                option.value = oficina.id; // Assuming 'id' for offices
+                option.textContent = oficina.name; // Assuming 'name' for offices
+                oficinaSelect.appendChild(option);
+            });
+        }
+
+      
+
+        function populatePrioridadeSelect() {
+            prioridadeSelect.innerHTML = '<option value="">Selecione a Prioridade</option>';
+            priorities.forEach(priority => {
+                const option = document.createElement('option');
+                option.value = priority;
+                option.textContent = priority;
+                prioridadeSelect.appendChild(option);
+            });
+        }
+
+        // --- Event Listeners for Selects ---
+        vehicleSelect.addEventListener('change', () => {
+            const selectedOption = vehicleSelect.options[vehicleSelect.selectedIndex];
+            const fuelType = selectedOption.dataset.fuelType;
+            populateCombustivelSelect(fuelType);
+        });
+
+        // --- Checklist Items Logic ---
+        function addChecklistItem(container, item = {}) {
+            const itemId = item.id || `checklist-item-${checklistItemCounter++}`;
+            const itemHtml = `
+                <div class="checklist-item" data-id="${itemId}">
+                    <div class="form-group">
+                        <label for="itemDescription-${itemId}">Descrição do Serviço</label>
+                        <textarea id="itemDescription-${itemId}" rows="2" class="w-full p-2 border border-gray-300 rounded" placeholder="Ex: Troca de óleo, Verificação de freios" required>${item.description || ''}</textarea>
+                    </div>
+                    <div class="checklist-item-details">
+                        <div class="form-group">
+                            <label for="itemPrazo-${itemId}">Prazo (dias)</label>
+                            <input type="number" id="itemPrazo-${itemId}" class="w-full p-2 border border-gray-300 rounded" value="${item.prazo || ''}" placeholder="Ex: 7" />
+                        </div>
+                        <div class="form-group">
+                            <label for="itemCusto-${itemId}">Custo (R$)</label>
+                            <input type="number" id="itemCusto-${itemId}" class="w-full p-2 border border-gray-300 rounded" value="${item.custo || ''}" step="0.01" placeholder="Ex: 150.00" />
+                        </div>
+                        <div class="form-group flex items-end">
+                            <button type="button" class="btn-remove-item" onclick="removeChecklistItem('${itemId}', '${container.id}')">
+                                <i class="ph ph-trash text-lg"></i> Remover
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', itemHtml);
+        }
+
+        function removeChecklistItem(id, containerId) {
+            const container = document.getElementById(containerId);
+            const itemToRemove = container.querySelector(`.checklist-item[data-id="${id}"]`);
+            if (itemToRemove) {
+                itemToRemove.remove();
+                showFeedback('Item da checklist removido!', true);
+            }
+        }
+
+        addChecklistItemBtn.addEventListener('click', () => addChecklistItem(checklistItemsContainer));
+
+        // --- Modals General Functions ---
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('open');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+
+        // --- Fuel Type Modal Logic ---
+        addFuelTypeBtn.addEventListener('click', () => {
+            openModal('addFuelTypeModal');
+            renderFuelTypeList();
+        });
+
+        function addNewFuelType() {
+            const newFuelName = newFuelTypeNameInput.value.trim();
+            if (newFuelName) {
+                const existingFuelType = fuelTypes.find(f => f.name.toLowerCase() === newFuelName.toLowerCase());
+                if (existingFuelType) {
+                    showFeedback('Este tipo de combustível já existe!', false);
+                    return;
+                }
+                const newFuel = { id: Date.now(), name: newFuelName };
+                fuelTypes.push(newFuel);
+                saveData('cadastros_combustivel', fuelTypes);
+                newFuelTypeNameInput.value = '';
+                renderFuelTypeList();
+                populateCombustivelSelect(); // Update main select
+                showFeedback('Tipo de combustível adicionado com sucesso!', true);
+            } else {
+                showFeedback('Por favor, insira o nome do combustível.', false);
+            }
+        }
+
+        function renderFuelTypeList() {
+            fuelTypeList.innerHTML = '';
+            fuelTypes.forEach(fuel => {
+                const listItem = document.createElement('li');
+                listItem.className = 'modal-list-item';
+                listItem.innerHTML = `
+                    <span>${fuel.name}</span>
+                    <button type="button" class="delete-btn-small" onclick="deleteFuelType(${fuel.id})">Remover</button>
+                `;
+                fuelTypeList.appendChild(listItem);
+            });
+            if (fuelTypes.length === 0) {
+                fuelTypeList.innerHTML = '<li class="modal-list-item text-gray-500">Nenhum tipo de combustível cadastrado.</li>';
+            }
+        }
+
+        function deleteFuelType(id) {
+            fuelTypes = fuelTypes.filter(f => f.id !== id);
+            saveData('cadastros_combustivel', fuelTypes);
+            renderFuelTypeList();
+            populateCombustivelSelect(); // Update main select
+            showFeedback('Tipo de combustível removido!', true);
+        }
+
+        // Expose to global scope for onclick in HTML
+        window.closeModal = closeModal;
+        window.addNewFuelType = addNewFuelType;
+        window.deleteFuelType = deleteFuelType;
+
+        // --- Oficina Modal Logic ---
+        addOficinaBtn.addEventListener('click', () => {
+            openModal('addOficinaModal');
+            renderOficinaList();
+        });
+
+        function addNewOficina() {
+            const newOficinaName = newOficinaNameInput.value.trim();
+            if (newOficinaName) {
+                const existingOficina = offices.find(o => o.name.toLowerCase() === newOficinaName.toLowerCase());
+                if (existingOficina) {
+                    showFeedback('Esta oficina já existe!', false);
+                    return;
+                }
+                const newOficina = { id: Date.now(), name: newOficinaName };
+                offices.push(newOficina);
+                saveData('cadastros_oficina', offices);
+                newOficinaNameInput.value = '';
+                renderOficinaList();
+                populateOficinaSelect(); // Update main select
+                showFeedback('Oficina adicionada com sucesso!', true);
+            } else {
+                showFeedback('Por favor, insira o nome da oficina.', false);
+            }
+        }
+
+        function renderOficinaList() {
+            oficinaList.innerHTML = '';
+            offices.forEach(oficina => {
+                const listItem = document.createElement('li');
+                listItem.className = 'modal-list-item';
+                listItem.innerHTML = `
+                    <span>${oficina.name}</span>
+                    <button type="button" class="delete-btn-small" onclick="deleteOficina(${oficina.id})">Remover</button>
+                `;
+                oficinaList.appendChild(listItem);
+            });
+            if (offices.length === 0) {
+                oficinaList.innerHTML = '<li class="modal-list-item text-gray-500">Nenhuma oficina cadastrada.</li>';
+            }
+        }
+
+        function deleteOficina(id) {
+            offices = offices.filter(o => o.id !== id);
+            saveData('cadastros_oficina', offices);
+            renderOficinaList();
+            populateOficinaSelect(); // Update main select
+            showFeedback('Oficina removida!', true);
+        }
+        window.addNewOficina = addNewOficina;
+        window.deleteOficina = deleteOficina;
+
+        // --- Main Form Submission (Save Appointment/OS) ---
+        agendamentoForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const osNumber = osNumberInput.value;
+            const vehicleId = vehicleSelect.value;
+            const tipoAgendamento = tipoAgendamento.value;
+            const dataAgendamento = dataAgendamento.value;
+            const horaAgendamento = horaAgendamento.value;
+            const combustivel = combustivelSelect.value;
+            const oficinaId = oficinaSelect.value;
+            const leituraAtual = leituraAtual.value;
+          
+            const prioridade = prioridadeSelect.value;
+            const observacoes = observacoes.value;
+
+            // Basic validation
+            if (!vehicleId || !tipoAgendamento || !dataAgendamento || !horaAgendamento || !oficinaId || !leituraAtual || !prioridade) {
+                showFeedback('Por favor, preencha todos os campos obrigatórios.', false);
+                return;
+            }
+
+            const checklistItems = [];
+            checklistItemsContainer.querySelectorAll('.checklist-item').forEach(itemDiv => {
+                const id = itemDiv.dataset.id;
+                const description = itemDiv.querySelector(`#itemDescription-${id}`).value;
+                const prazo = itemDiv.querySelector(`#itemPrazo-${id}`).value;
+                const custo = itemDiv.querySelector(`#itemCusto-${id}`).value;
+                if (description) { // Only add if description is not empty
+                    checklistItems.push({ id, description, prazo: parseFloat(prazo) || 0, custo: parseFloat(custo) || 0 });
+                }
+            });
+
+            const newAppointment = {
+                id: Date.now(), // Unique ID for the appointment
+                osNumber: osNumber,
+                vehicleId: vehicleId,
+                vehicleInfo: vehicleSelect.options[vehicleSelect.selectedIndex].textContent, // Store text for display
+                tipoAgendamento: tipoAgendamento,
+                dataAgendamento: dataAgendamento,
+                horaAgendamento: horaAgendamento,
+                combustivel: combustivel,
+                oficinaId: oficinaId,
+                oficinaInfo: oficinaSelect.options[oficinaSelect.selectedIndex].textContent,
+                leituraAtual: parseFloat(leituraAtual),
+                prioridade: prioridade,
+                observacoes: observacoes,
+                checklistItems: checklistItems,
+                status: 'Agendado' // Default status
+            };
+
+            appointments.push(newAppointment);
+            saveData('agendamentos', appointments);
+            showFeedback('Ordem de Serviço agendada com sucesso!', true);
+            agendamentoForm.reset();
+            generateOSNumber(); // Generate new OS number for the next entry
+            populateCombustivelSelect(); // Reset fuel type select
+            checklistItemsContainer.innerHTML = ''; // Clear checklist items
+            checklistItemCounter = 0; // Reset counter for new form
+            renderAppointmentsTable();
+        });
+
+        // --- Render Appointments Table ---
+        function renderAppointmentsTable() {
+            appointmentsTableBody.innerHTML = '';
+            if (appointments.length === 0) {
+                appointmentsTableBody.innerHTML = '<tr><td colspan="9" class="text-center p-4 text-gray-500">Nenhuma Ordem de Serviço agendada.</td></tr>';
+                return;
+            }
+
+            appointments.sort((a, b) => new Date(a.dataAgendamento + 'T' + a.horaAgendamento) - new Date(b.dataAgendamento + 'T' + b.horaAgendamento));
+
+            appointments.forEach(appt => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-100 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="p-3 text-gray-800 font-medium">${appt.osNumber}</td>
+                    <td class="p-3 text-gray-700">${appt.vehicleInfo}</td>
+                    <td class="p-3 text-gray-700">${appt.dataAgendamento}</td>
+                    <td class="p-3 text-gray-700">${appt.horaAgendamento}</td>
+                    <td class="p-3 text-gray-700">${appt.tipoAgendamento}</td>
+                    <td class="p-3 text-gray-700">${appt.oficinaInfo}</td>
+                   
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${
+                            appt.status === 'Agendado' ? 'bg-blue-100 text-blue-800' :
+                            appt.status === 'Em Andamento' ? 'bg-yellow-100 text-yellow-800' :
+                            appt.status === 'Concluído' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                        }">${appt.status}</span>
+                    </td>
+                    <td class="p-3 text-gray-700">
+                        <div class="flex gap-2">
+                            <button class="edit-btn" onclick="openEditAppointmentModal('${appt.id}')">
+                                <i class="ph ph-pencil-simple"></i> Editar
+                            </button>
+                            <button class="delete-btn" onclick="deleteAppointment('${appt.id}')">
+                                <i class="ph ph-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </td>
+                `;
+                appointmentsTableBody.appendChild(row);
+            });
+        }
+
+        // --- Edit Appointment Modal Logic ---
+        function openEditAppointmentModal(id) {
+            const appt = appointments.find(a => a.id == id);
+            if (!appt) {
+                showFeedback('Ordem de Serviço não encontrada para edição.', false);
+                return;
+            }
+
+            document.getElementById('editAppointmentId').value = appt.id;
+            document.getElementById('editOsNumber').value = appt.osNumber;
+
+            // Populate vehicle select for edit (read-only, shows selected vehicle)
+            const editVehicleSelect = document.getElementById('editVehicleSelect');
+            editVehicleSelect.innerHTML = '';
+            const selectedVehicleOption = document.createElement('option');
+            selectedVehicleOption.value = appt.vehicleId;
+            selectedVehicleOption.textContent = appt.vehicleInfo;
+            editVehicleSelect.appendChild(selectedVehicleOption);
+            editVehicleSelect.disabled = true; // Vehicle cannot be changed
+
+            document.getElementById('editTipoAgendamento').value = appt.tipoAgendamento;
+            document.getElementById('editDataAgendamento').value = appt.dataAgendamento;
+            document.getElementById('editHoraAgendamento').value = appt.horaAgendamento;
+
+            // Populate edit fuel type (read-only)
+            const editCombustivelSelect = document.getElementById('editCombustivelSelect');
+            editCombustivelSelect.innerHTML = '';
+            const selectedFuelOption = document.createElement('option');
+            selectedFuelOption.value = appt.combustivel;
+            selectedFuelOption.textContent = appt.combustivel;
+            editCombustivelSelect.appendChild(selectedFuelOption);
+            editCombustivelSelect.disabled = true; // Fuel type cannot be changed with vehicle
+
+            // Populate Oficina select for edit
+            const editOficinaSelect = document.getElementById('editOficinaSelect');
+            editOficinaSelect.innerHTML = '<option value="">Selecione a Oficina</option>';
+            offices.forEach(oficina => {
+                const option = document.createElement('option');
+                option.value = oficina.id;
+                option.textContent = oficina.name;
+                editOficinaSelect.appendChild(option);
+            });
+            editOficinaSelect.value = appt.oficinaId;
+
+            document.getElementById('editLeituraAtual').value = appt.leituraAtual;
+
+            // Populate Técnico select for edit
+           
+
+            document.getElementById('editPrioridadeSelect').value = appt.prioridade;
+            document.getElementById('editObservacoes').value = appt.observacoes;
+
+            // Populate checklist items for edit modal
+            const editChecklistItemsContainer = document.getElementById('editChecklistItemsContainer');
+            editChecklistItemsContainer.innerHTML = '';
+            if (appt.checklistItems && appt.checklistItems.length > 0) {
+                appt.checklistItems.forEach(item => addChecklistItem(editChecklistItemsContainer, item));
+            }
+
+            document.getElementById('editStatusOs').value = appt.status;
+
+            openModal('editAppointmentModal');
+        }
+        window.openEditAppointmentModal = openEditAppointmentModal; // Expose to global scope
+
+        document.getElementById('addEditChecklistItemBtn').addEventListener('click', () => {
+            addChecklistItem(document.getElementById('editChecklistItemsContainer'));
+        });
+
+        editAppointmentForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const id = document.getElementById('editAppointmentId').value;
+            const index = appointments.findIndex(a => a.id == id);
+
+            if (index === -1) {
+                showFeedback('Erro: Ordem de Serviço não encontrada.', false);
+                return;
+            }
+
+            const updatedChecklistItems = [];
+            document.getElementById('editChecklistItemsContainer').querySelectorAll('.checklist-item').forEach(itemDiv => {
+                const itemId = itemDiv.dataset.id;
+                const description = itemDiv.querySelector(`#itemDescription-${itemId}`).value;
+                const prazo = itemDiv.querySelector(`#itemPrazo-${itemId}`).value;
+                const custo = itemDiv.querySelector(`#itemCusto-${itemId}`).value;
+                if (description) {
+                    updatedChecklistItems.push({ id: itemId, description, prazo: parseFloat(prazo) || 0, custo: parseFloat(custo) || 0 });
+                }
+            });
+
+            appointments[index] = {
+                ...appointments[index], // Keep existing data
+                tipoAgendamento: document.getElementById('editTipoAgendamento').value,
+                dataAgendamento: document.getElementById('editDataAgendamento').value,
+                horaAgendamento: document.getElementById('editHoraAgendamento').value,
+                oficinaId: document.getElementById('editOficinaSelect').value,
+                oficinaInfo: document.getElementById('editOficinaSelect').options[document.getElementById('editOficinaSelect').selectedIndex].textContent,
+                leituraAtual: parseFloat(document.getElementById('editLeituraAtual').value),
+               
+               
+                prioridade: document.getElementById('editPrioridadeSelect').value,
+                observacoes: document.getElementById('editObservacoes').value,
+                checklistItems: updatedChecklistItems,
+                status: document.getElementById('editStatusOs').value
+            };
+
+            saveData('agendamentos', appointments);
+            showFeedback('Ordem de Serviço atualizada com sucesso!', true);
+            closeModal('editAppointmentModal');
+            renderAppointmentsTable();
+        });
+
+        // --- Delete Appointment ---
+        function deleteAppointment(id) {
+            if (confirm('Tem certeza que deseja excluir esta Ordem de Serviço?')) {
+                appointments = appointments.filter(appt => appt.id != id);
+                saveData('agendamentos', appointments);
+                showFeedback('Ordem de Serviço excluída com sucesso!', true);
+                renderAppointmentsTable();
+            }
+        }
+        window.deleteAppointment = deleteAppointment; // Expose to global scope
+
+        // Initial load
+        generateOSNumber();
+        populateVehicleSelect();
+        populateCombustivelSelect(); // Populate initially, will be overridden by vehicle selection
+        populateOficinaSelect();
+
+        populatePrioridadeSelect();
+        renderAppointmentsTable();
+    });
+
+    // Global logout function
+    function logout() {
+        // Clear any user session data if necessary
+        // localStorage.removeItem('userLoggedIn');
+        window.location.href = 'login.html'; // Redirect to login page
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Produtos - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/cadastroveiculos.css"> 
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <style>
+        /* Estilos CSS para o Header e Dropdowns (copiados do original) */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 9999;
+            flex-direction: column;
+            border-radius: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-content .dropdown-item {
+            color: #4a5568;
+            padding: 0.75rem 1.25rem;
+            text-decoration: none;
+            display: block;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
+            border-radius: 0.5rem;
+            margin: 0 0.5rem;
+        }
+
+        .dropdown-content .dropdown-item:hover {
+            background-color: #edf2f7;
+            color: #2d3748;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: flex;
+        }
+
+        .submenu-content {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background-color: #fff;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 9999;
+            flex-direction: column;
+            border-radius: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #4a5568;
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
+            border-radius: 0.5rem;
+            margin: 0 0.5rem;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #edf2f7;
+            color: #2d3748;
+        }
+
+        .group:hover .submenu-content {
+            display: flex;
+        }
+
+        .menu-link.active-menu {
+            border-bottom-color: #fcd34d;
+            color: #fcd34d;
+        }
+
+        #alertBellButton {
+            position: relative;
+        }
+
+        #alertCount {
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(50%, -50%);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close-button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: color 0.2s;
+        }
+
+        .modal-close-button:hover {
+            color: #ef4444;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-cancel {
+            background-color: #cbd5e0;
+            color: #4a5568;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background-color: #a0aec0;
+        }
+
+        .btn-save-modal {
+            background-color: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-save-modal:hover {
+            background-color: #059669;
+        }
+
+        /* Estilos adicionais para o formulário de cadastro de produtos */
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select {
+            width: 100%;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 0.75rem; /* p-3 */
+            font-size: 1rem;
+            line-height: 1.5;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #10b981; /* green-500 */
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); /* focus:ring-2 focus:ring-green-500 */
+        }
+
+        .btn-submit {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #10b981; /* green-500 */
+            color: white;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background-color: #059669; /* green-600 */
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            overflow: hidden; /* Para garantir que o border-radius funcione com overflow-x-auto */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table thead {
+            background-color: #047857; /* green-700 */
+            color: white;
+            font-size: 0.875rem; /* text-sm */
+            text-transform: uppercase;
+            letter-spacing: 0.05em; /* tracking-wider */
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem 1.5rem; /* px-6 py-3 */
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* gray-50 */
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+
+        .action-buttons button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+
+        .action-buttons button.edit:hover {
+            background-color: #bfdbfe; /* blue-200 */
+        }
+
+        .action-buttons button.delete:hover {
+            background-color: #fecaca; /* red-200 */
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden flex flex-col min-h-screen bg-gray-100">
+
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+
+    <main class="flex-grow container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Cadastro de Produtos</h1>
+
+        <div class="form-container bg-white p-8 rounded-xl shadow-md">
+            <h2 class="text-2xl font-semibold text-green-700 mb-6">Informações do Produto</h2>
+            <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div class="form-group col-span-1 md:col-span-1">
+                    <label for="productName">Nome do Produto:</label>
+                    <input type="text" id="productName" placeholder="Ex: Óleo de Motor Sintético" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group">
+                    <label for="productCode">Código do Produto (SKU):</label>
+                    <input type="text" id="productCode" placeholder="Ex: OLMS001" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Categoria:</label>
+                    <select id="productCategory" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione uma categoria</option>
+                        <option value="OLEOS_LUBRIFICANTES">Óleos e Lubrificantes</option>
+                        <option value="PECAS">Peças Automotivas</option>
+                        <option value="FERRAMENTAS">Ferramentas</option>
+                        <option value="ACESSORIOS">Acessórios</option>
+                        <option value="PNEUS">Pneus</option>
+                        <option value="OUTROS">Outros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productUnit">Unidade de Medida:</label>
+                    <select id="productUnit" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione a unidade</option>
+                        <option value="UN">Unidade (UN)</option>
+                        <option value="LT">Litro (LT)</option>
+                        <option value="KG">Quilograma (KG)</option>
+                        <option value="M">Metro (M)</option>
+                        <option value="CX">Caixa (CX)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productStock">Estoque Atual:</label>
+                    <input type="number" id="productStock" placeholder="Ex: 100" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group">
+                    <label for="productMinStock">Estoque Mínimo:</label>
+                    <input type="number" id="productMinStock" placeholder="Ex: 10" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Preço de Custo (R$):</label>
+                    <input type="number" id="productPrice" placeholder="Ex: 45.90" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group col-span-full">
+                    <label for="productDescription">Descrição do Produto:</label>
+                    <textarea id="productDescription" placeholder="Detalhes sobre o produto, especificações, etc." rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+                
+                <input type="hidden" id="dataCadastroProduto" name="dataCadastroProduto">
+                <input type="hidden" id="diaCadastroProduto" name="diaCadastroProduto">
+
+                <div class="col-span-full flex justify-end">
+                    <button type="submit" class="btn-submit">
+                        <i class="ph ph-plus-circle text-2xl"></i>
+                        Cadastrar Produto
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="list-container mt-10 bg-white p-8 rounded-xl shadow-md">
+            <h2 class="text-2xl font-semibold text-green-700 mb-6">Produtos Cadastrados</h2>
+            <div class="overflow-x-auto">
+                <table class="data-table min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3">Nome do Produto</th>
+                            <th class="px-6 py-3">Código</th>
+                            <th class="px-6 py-3">Categoria</th>
+                            <th class="px-6 py-3">Unidade</th>
+                            <th class="px-6 py-3">Estoque</th>
+                            <th class="px-6 py-3">Est. Mínimo</th>
+                            <th class="px-6 py-3">Preço Custo</th>
+                            <th class="px-6 py-3">Data Cadastro</th>
+                            <th class="px-6 py-3 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="editProductModal" class="modal hidden">
+        <div class="modal-content max-w-2xl">
+            <div class="modal-header">
+                <h2 class="text-3xl font-bold text-green-700">Editar Produto</h2>
+                <button onclick="closeEditProductModal()" class="modal-close-button" aria-label="Fechar modal de edição">
+                    <i class="ph ph-x-circle"></i>
+                </button>
+            </div>
+            <form id="editProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div class="form-group col-span-1 md:col-span-1">
+                    <label for="edit-productName">Nome do Produto:</label>
+                    <input type="text" id="edit-productName" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group">
+                    <label for="edit-productCode">Código do Produto (SKU):</label>
+                    <input type="text" id="edit-productCode" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="edit-productCategory">Categoria:</label>
+                    <select id="edit-productCategory" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione uma categoria</option>
+                        <option value="OLEOS_LUBRIFICANTES">Óleos e Lubrificantes</option>
+                        <option value="PECAS">Peças Automotivas</option>
+                        <option value="FERRAMENTAS">Ferramentas</option>
+                        <option value="ACESSORIOS">Acessórios</option>
+                        <option value="PNEUS">Pneus</option>
+                        <option value="OUTROS">Outros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-productUnit">Unidade de Medida:</label>
+                    <select id="edit-productUnit" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione a unidade</option>
+                        <option value="UN">Unidade (UN)</option>
+                        <option value="LT">Litro (LT)</option>
+                        <option value="KG">Quilograma (KG)</option>
+                        <option value="M">Metro (M)</option>
+                        <option value="CX">Caixa (CX)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-productStock">Estoque Atual:</label>
+                    <input type="number" id="edit-productStock" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group">
+                    <label for="edit-productMinStock">Estoque Mínimo:</label>
+                    <input type="number" id="edit-productMinStock" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group">
+                    <label for="edit-productPrice">Preço de Custo (R$):</label>
+                    <input type="number" id="edit-productPrice" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="form-group col-span-full">
+                    <label for="edit-productDescription">Descrição do Produto:</label>
+                    <textarea id="edit-productDescription" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+                <input type="hidden" id="edit-dataCadastroProduto" name="dataCadastroProduto">
+                <input type="hidden" id="edit-diaCadastroProduto" name="diaCadastroProduto">
+
+                <div class="modal-footer col-span-full">
+                    <button type="button" onclick="closeEditProductModal()" class="btn-cancel">Cancelar</button>
+                    <button type="submit" class="btn-save-modal">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal hidden">
+        <div class="modal-content max-w-md">
+            <div class="modal-header">
+                <h3 id="registerModalTitle" class="text-2xl font-bold text-green-900">Cadastrar Novo Item</h3>
+                <button onclick="closeRegisterModal()" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full" aria-label="Fechar modal">
+                    <i class="ph ph-x-circle text-3xl"></i>
+                </button>
+            </div>
+            <div class="p-8">
+                <div class="mb-4">
+                    <label for="registerName" class="block font-semibold mb-2">Nome do Item:</label>
+                    <input type="text" id="registerName" placeholder="Digite o nome" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeRegisterModal()" class="btn-cancel">Cancelar</button>
+                    <button type="button" id="saveNewItemButton" class="btn-save-modal">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Funções para o Dropdown do Header (copiadas do seu original)
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropdowns = document.querySelectorAll('.dropdown');
+
+            dropdowns.forEach(dropdown => {
+                const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                const content = dropdown.querySelector('.dropdown-content');
+
+                if (button && content) {
+                    button.addEventListener('click', function (event) {
+                        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                        button.setAttribute('aria-expanded', !isExpanded);
+                        content.classList.toggle('hidden');
+                        if (!isExpanded) {
+                            // Fechar outros dropdowns
+                            dropdowns.forEach(otherDropdown => {
+                                if (otherDropdown !== dropdown) {
+                                    const otherContent = otherDropdown.querySelector('.dropdown-content');
+                                    const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                                    if (otherContent && !otherContent.classList.contains('hidden')) {
+                                        otherContent.classList.add('hidden');
+                                        otherButton.setAttribute('aria-expanded', 'false');
+                                    }
+                                }
+                            });
+                        }
+                        event.stopPropagation(); // Impede que o clique no botão propague e feche imediatamente
+                    });
+                }
+            });
+
+            // Adiciona funcionalidade para submenus
+            const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+            submenuTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function(event) {
+                    const submenuContent = this.nextElementSibling;
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    submenuContent.classList.toggle('hidden');
+                    event.stopPropagation(); // Impede que o clique no submenu feche o menu pai
+                });
+            });
+
+            // Fecha dropdowns quando clica fora
+            window.addEventListener('click', function (event) {
+                dropdowns.forEach(dropdown => {
+                    const content = dropdown.querySelector('.dropdown-content');
+                    const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                    if (content && button && !content.contains(event.target) && !button.contains(event.target)) {
+                        content.classList.add('hidden');
+                        button.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Define o link do menu como ativo se for a página atual
+            const currentPath = window.location.pathname.split('/').pop();
+            const menuLinks = document.querySelectorAll('.menu-link');
+            menuLinks.forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (linkHref && linkHref.includes(currentPath)) {
+                    link.classList.add('active-menu');
+                    // Se for um item de submenu, expandir os pais
+                    let parentDropdownContent = link.closest('.dropdown-content');
+                    while(parentDropdownContent) {
+                        parentDropdownContent.classList.remove('hidden');
+                        let parentButton = parentDropdownContent.previousElementSibling;
+                        if(parentButton && parentButton.tagName === 'BUTTON') {
+                            parentButton.setAttribute('aria-expanded', 'true');
+                        }
+                        parentDropdownContent = parentDropdownContent.closest('.dropdown-content');
+                    }
+                }
+            });
+
+            // Função de logout (placeholder)
+            window.logout = function() {
+                alert('Você foi desconectado!');
+                // Aqui você pode adicionar a lógica para limpar a sessão, cookies, etc.
+                window.location.href = 'login.html'; // Redireciona para a página de login
+            };
+
+            // Lógica para o contador de alertas (simulada)
+            const alertCountSpan = document.getElementById('alertCount');
+            const alertListDiv = document.getElementById('alertList');
+
+            // Exemplo de como adicionar um alerta (você buscará isso do backend)
+            let alerts = [];
+            function addAlert(message) {
+                alerts.push(message);
+                updateAlertsDisplay();
+            }
+
+            function updateAlertsDisplay() {
+                if (alerts.length > 0) {
+                    alertCountSpan.textContent = alerts.length;
+                    alertCountSpan.style.display = 'block';
+                    alertListDiv.innerHTML = ''; // Limpa a lista existente
+                    alerts.forEach(alert => {
+                        const p = document.createElement('p');
+                        p.className = 'text-sm text-gray-700 mb-1';
+                        p.textContent = alert;
+                        alertListDiv.appendChild(p);
+                    });
+                } else {
+                    alertCountSpan.style.display = 'none';
+                    alertListDiv.innerHTML = '<p class="text-sm text-gray-500">Nenhum alerta no momento.</p>';
+                }
+            }
+
+            // Simula alguns alertas (você removerá isso e buscará do seu backend)
+            // addAlert('Estoque mínimo atingido para "Óleo de Motor".');
+            // addAlert('Produto "Filtro de Ar" precisa de reposição.');
+            updateAlertsDisplay(); // Atualiza a exibição inicial
+        });
+
+        // =========================================================
+        // SCRIPTS ESPECÍFICOS PARA CADASTRO DE PRODUTOS
+        // =========================================================
+
+        const productForm = document.getElementById('productForm');
+        const productsTableBody = document.getElementById('productsTableBody');
+        const editProductModal = document.getElementById('editProductModal');
+        const editProductForm = document.getElementById('editProductForm');
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let editingProductIndex = -1; // Para saber qual produto está sendo editado
+
+        // Inicializar Select2 para os selects de categoria e unidade (se tivermos dados dinâmicos)
+        $(document).ready(function() {
+            $('#productCategory').select2({
+                placeholder: "Selecione uma categoria",
+                allowClear: true
+            });
+            $('#productUnit').select2({
+                placeholder: "Selecione a unidade",
+                allowClear: true
+            });
+            $('#edit-productCategory').select2({
+                placeholder: "Selecione uma categoria",
+                allowClear: true,
+                dropdownParent: $('#editProductModal') // Importante para modais
+            });
+            $('#edit-productUnit').select2({
+                placeholder: "Selecione a unidade",
+                allowClear: true,
+                dropdownParent: $('#editProductModal') // Importante para modais
+            });
+        });
+
+        function saveProducts() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        function renderProducts() {
+            productsTableBody.innerHTML = '';
+            products.forEach((product, index) => {
+                const row = productsTableBody.insertRow();
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">${product.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${product.code}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${product.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${product.unit}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${product.stock}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${product.minStock}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">R$ ${parseFloat(product.price).toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${product.dataCadastroProduto}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right action-buttons">
+                        <button onclick="editProduct(${index})" class="text-blue-600 hover:text-blue-900 edit" aria-label="Editar produto">
+                            <i class="ph ph-pencil text-xl"></i>
+                        </button>
+                        <button onclick="deleteProduct(${index})" class="text-red-600 hover:text-red-900 ml-2 delete" aria-label="Excluir produto">
+                            <i class="ph ph-trash text-xl"></i>
+                        </button>
+                    </td>
+                `;
+            });
+        }
+
+        productForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const now = new Date();
+            const dataCadastro = now.toLocaleDateString('pt-BR');
+            const diaCadastro = now.getDate();
+
+            const newProduct = {
+                name: document.getElementById('productName').value,
+                code: document.getElementById('productCode').value.toUpperCase(),
+                category: document.getElementById('productCategory').value,
+                unit: document.getElementById('productUnit').value,
+                stock: parseInt(document.getElementById('productStock').value),
+                minStock: parseInt(document.getElementById('productMinStock').value),
+                price: parseFloat(document.getElementById('productPrice').value).toFixed(2),
+                description: document.getElementById('productDescription').value,
+                dataCadastroProduto: dataCadastro,
+                diaCadastroProduto: diaCadastro
+            };
+
+            products.push(newProduct);
+            saveProducts();
+            renderProducts();
+            productForm.reset();
+            // Reset Select2 fields after form submission
+            $('#productCategory').val(null).trigger('change');
+            $('#productUnit').val(null).trigger('change');
+            alert('Produto cadastrado com sucesso!');
+        });
+
+        function editProduct(index) {
+            editingProductIndex = index;
+            const product = products[index];
+
+            document.getElementById('edit-productName').value = product.name;
+            document.getElementById('edit-productCode').value = product.code;
+            $('#edit-productCategory').val(product.category).trigger('change'); // Update Select2
+            $('#edit-productUnit').val(product.unit).trigger('change'); // Update Select2
+            document.getElementById('edit-productStock').value = product.stock;
+            document.getElementById('edit-productMinStock').value = product.minStock;
+            document.getElementById('edit-productPrice').value = product.price;
+            document.getElementById('edit-productDescription').value = product.description;
+            document.getElementById('edit-dataCadastroProduto').value = product.dataCadastroProduto;
+            document.getElementById('edit-diaCadastroProduto').value = product.diaCadastroProduto;
+
+            editProductModal.classList.remove('hidden');
+        }
+
+        editProductForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (editingProductIndex !== -1) {
+                products[editingProductIndex] = {
+                    name: document.getElementById('edit-productName').value,
+                    code: document.getElementById('edit-productCode').value.toUpperCase(),
+                    category: document.getElementById('edit-productCategory').value,
+                    unit: document.getElementById('edit-productUnit').value,
+                    stock: parseInt(document.getElementById('edit-productStock').value),
+                    minStock: parseInt(document.getElementById('edit-productMinStock').value),
+                    price: parseFloat(document.getElementById('edit-productPrice').value).toFixed(2),
+                    description: document.getElementById('edit-productDescription').value,
+                    dataCadastroProduto: document.getElementById('edit-dataCadastroProduto').value,
+                    diaCadastroProduto: document.getElementById('edit-diaCadastroProduto').value
+                };
+                saveProducts();
+                renderProducts();
+                closeEditProductModal();
+                alert('Produto atualizado com sucesso!');
+            }
+        });
+
+        function deleteProduct(index) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                products.splice(index, 1);
+                saveProducts();
+                renderProducts();
+                alert('Produto excluído com sucesso!');
+            }
+        }
+
+        function closeEditProductModal() {
+            editProductModal.classList.add('hidden');
+            editingProductIndex = -1;
+        }
+
+        // Script para o Modal de Registro Rápido (reutilizado do seu código)
+        const registerModal = document.getElementById('registerModal');
+        const registerModalTitle = document.getElementById('registerModalTitle');
+        const registerNameInput = document.getElementById('registerName');
+        const saveNewItemButton = document.getElementById('saveNewItemButton');
+        let currentModalType = ''; // Para saber de qual campo o modal foi aberto
+
+        document.querySelectorAll('.btn-quick-add').forEach(button => {
+            button.addEventListener('click', function() {
+                currentModalType = this.dataset.modalType;
+                registerModalTitle.textContent = `Cadastrar Nova ${currentModalType.charAt(0).toUpperCase() + currentModalType.slice(1)}`;
+                registerNameInput.value = '';
+                registerModal.classList.remove('hidden');
+            });
+        });
+
+        saveNewItemButton.addEventListener('click', function() {
+            const newItemName = registerNameInput.value.trim();
+            if (newItemName) {
+                // Aqui você implementaria a lógica para salvar o novo item
+                // Por exemplo, adicionar a um array local ou enviar para um backend.
+                // Depois de salvar, você precisaria atualizar o Select2 correspondente.
+
+                // Exemplo de como adicionar a uma opção de select (APENAS PARA TESTE VISUAL)
+                let selectElement;
+                if (currentModalType === 'categoria') {
+                    selectElement = document.getElementById('productCategory');
+                } else if (currentModalType === 'unidade') {
+                    selectElement = document.getElementById('productUnit');
+                }
+                // Adicione mais `else if` para outros tipos de modal (fornecedor, técnico, etc.)
+
+                if (selectElement) {
+                    const newOption = new Option(newItemName, newItemName.toUpperCase(), false, false);
+                    $(selectElement).append(newOption).trigger('change');
+                }
+
+                alert(`Novo(a) ${currentModalType} "${newItemName}" cadastrado(a)!`);
+                closeRegisterModal();
+            } else {
+                alert('Por favor, insira um nome para o item.');
+            }
+        });
+
+        function closeRegisterModal() {
+            registerModal.classList.add('hidden');
+        }
+
+        // Renderiza os produtos ao carregar a página
+        renderProducts();
+    </script>
+</body>
+</html>

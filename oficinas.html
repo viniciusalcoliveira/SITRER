@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cadastro de Oficinas - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { /* Used for main menus now */
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top center;
+        }
+
+        /* Custom animation for dropdown fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right { /* Used for sub-menus now */
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left center;
+        }
+
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Adjust caret rotation for main dropdowns (back to caret-down) */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Points up when open */
+        }
+
+        /* Adjust caret rotation for submenus (still caret-right) */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open */
+        }
+
+        /* Dropdown content positioning for downwards opening (main menus) */
+        .dropdown-content {
+            position: absolute;
+            top: 100%; /* Position directly below the parent button */
+            left: 0;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+        /* Submenu content positioning for side opening (submenus) */
+        .submenu-content {
+            position: absolute;
+            top: 0; /* Align top with parent submenu trigger */
+            left: 100%; /* Position to the right of parent submenu trigger */
+            margin-left: 0.5rem; /* Small gap */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            border-left: 1px solid #e2e8f0; /* Add a subtle left border for visual separation */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+
+         /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Main dropdowns revert to full width and relative positioning for mobile */
+            .dropdown-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 1rem; /* Indent dropdown items */
+                margin-left: 0; /* Remove margin */
+            }
+            /* Submenus also revert to full width and static positioning for mobile */
+            .submenu-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-left: none; /* Remove left border */
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 2rem; /* Further indent nested items */
+                margin-left: 0; /* Remove margin */
+            }
+
+            /* Caret rotations for mobile should be different (pointing down when open) */
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset to default right-pointing */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(90deg) !important; /* Rotate down for consistency in mobile dropdowns */
+            }
+        }
+
+        /* Form styling */
+        .form-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 900px; /* Increased max-width for better multi-column layout */
+        }
+
+        .form-container h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a; /* green-600 */
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-container h1 .ph {
+            font-size: 2.25rem; /* Larger icon for heading */
+        }
+
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155; /* slate-700 */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-group label .ph {
+            font-size: 1.125rem; /* Icon size for labels */
+        }
+
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select { /* Added select */
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #475569; /* slate-700 */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: white; /* Ensure consistent background */
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus { /* Added select */
+            outline: none;
+            border-color: #16a34a; /* green-600 */
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); /* green-600 with opacity */
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .radio-group div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-group input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.2s ease;
+        }
+
+        .radio-group input[type="radio"]:checked {
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .radio-group input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.75rem;
+            height: 0.75rem;
+            background-color: #16a34a; /* green-600 */
+            border-radius: 50%;
+        }
+
+        .radio-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 0.375rem; /* rounded-md */
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            background-color: #16a34a; /* green-600 */
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .checkbox-group input[type="checkbox"]:checked::after {
+            content: '\2713'; /* Checkmark character */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: bold;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        #btnCadastrarCompartimento { /* Renamed for clarity */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 2rem;
+        }
+
+        #btnCadastrarCompartimento:hover {
+            background-color: #15803d; /* green-700 */
+            transform: translateY(-1px);
+        }
+
+        #btnCadastrarCompartimento:active {
+            transform: translateY(0);
+        }
+
+        #btnCancelEdit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 1rem; /* Space between submit and cancel */
+        }
+
+        #btnCancelEdit:hover {
+            background-color: #dc2626; /* red-600 */
+            transform: translateY(-1px);
+        }
+
+        #btnCancelEdit:active {
+            transform: translateY(0);
+        }
+
+        /* Listing Area for Compartments */
+        .listing-area {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .listing-area h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .listing-area h2 .ph {
+            font-size: 2.25rem;
+        }
+
+        #compartmentsList .empty-state {
+            text-align: center;
+            color: #6b7280; /* gray-500 */
+            padding: 2rem;
+            border: 1px dashed #d1d5db; /* gray-300 */
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Thinner Compartment Item Styling */
+        .compartment-item {
+            display: flex;
+            justify-content: space-between; /* Content left, actions right */
+            align-items: center; /* Vertically center content */
+            background-color: #f8fafc; /* slate-50 */
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem; /* Reduced vertical padding */
+            margin-bottom: 0.75rem; /* Reduced margin between items */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 1rem; /* Gap between content and buttons if they wrap */
+        }
+
+        .compartment-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .compartment-item h3 {
+            font-size: 1.25rem; /* Slightly smaller font for compactness */
+            font-weight: 600;
+            color: #1e293b; /* slate-800 */
+            margin-bottom: 0; /* Remove margin */
+            padding-bottom: 0; /* Remove padding */
+            border-bottom: none; /* Remove border */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-grow: 1; /* Allow content to grow */
+        }
+        .compartment-item h3 .ph {
+            font-size: 1.5rem; /* Adjust icon size */
+            color: #16a34a;
+        }
+
+        .compartment-item .actions {
+            display: flex;
+            gap: 0.5rem; /* Smaller gap between buttons */
+            margin-top: 0; /* Remove margin */
+            padding-top: 0; /* Remove padding */
+            border-top: none; /* Remove border */
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        .compartment-item .delete-btn,
+        .compartment-item .edit-btn { /* Style for both buttons */
+            background-color: #dc2626; /* red-600 */
+            color: white;
+            padding: 0.4rem 0.8rem; /* Even smaller padding for buttons */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem; /* Smaller gap for button icons */
+            font-size: 0.875rem; /* Smaller font for buttons */
+        }
+
+        .compartment-item .edit-btn {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .compartment-item .edit-btn:hover {
+            background-color: #1d4ed8; /* blue-700 */
+            transform: translateY(-1px);
+        }
+        .compartment-item .edit-btn:active {
+            transform: translateY(0);
+        }
+
+        .compartment-item .delete-btn:hover {
+            background-color: #b91c1c; /* red-700 */
+            transform: translateY(-1px);
+        }
+
+        .compartment-item .delete-btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            display: none; /* Hidden by default */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert.success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            border: 1px solid #34d399; /* green-400 */
+        }
+
+        .alert.error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+            border: 1px solid #f87171; /* red-400 */
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #f8fafc; /* Changed to slate-50 to match other elements */
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            max-height: 90vh; /* Limit modal height */
+            overflow-y: auto; /* Enable scrolling for long content */
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-content input[type="text"] {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .modal-actions button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+
+        .modal-actions .btn-cancel {
+            background-color: #e2e8f0; /* slate-200 */
+            color: #334155; /* slate-700 */
+        }
+        .modal-actions .btn-cancel:hover {
+            background-color: #cbd5e1; /* slate-300 */
+        }
+
+        .modal-actions .btn-save {
+            background-color: #16a34a; /* green-600 */
+            color: white;
+        }
+        .modal-actions .btn-save:hover {
+            background-color: #15803d; /* green-700 */
+        }
+
+        /* Edit Modal Specific Styles */
+        #editCompartmentModal .modal-content {
+            max-width: 600px; /* Wider for edit fields */
+        }
+    </style>
+</head>
+<body>
+
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+
+<script>document.addEventListener('DOMContentLoaded', function() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dropdown => {
+        const button = dropdown.querySelector('button[aria-haspopup="true"]');
+        const dropdownContent = dropdown.querySelector('.dropdown-content');
+
+        if (button && dropdownContent) {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent document click from immediately closing
+                // Close other open dropdowns
+                dropdowns.forEach(otherDropdown => {
+                    const otherDropdownContent = otherDropdown.querySelector('.dropdown-content');
+                    const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                    if (otherDropdown !== dropdown && otherDropdownContent && !otherDropdownContent.classList.contains('hidden')) {
+                        otherDropdownContent.classList.add('hidden');
+                        otherDropdownContent.classList.remove('animate-fade-in-down');
+                        if (otherButton) {
+                            otherButton.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                });
+
+                // Toggle current dropdown
+                dropdownContent.classList.toggle('hidden');
+                dropdownContent.classList.toggle('animate-fade-in-down');
+                button.setAttribute('aria-expanded', dropdownContent.classList.contains('hidden') ? 'false' : 'true');
+
+                // Close any open submenus within this dropdown when its main menu is toggled
+                const openSubmenus = dropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                openSubmenus.forEach(submenu => {
+                    submenu.classList.add('hidden');
+                    submenu.classList.remove('animate-fade-in-right');
+                    const submenuTrigger = submenu.previousElementSibling;
+                    if (submenuTrigger && submenuTrigger.hasAttribute('aria-expanded')) {
+                        submenuTrigger.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Prevent clicks inside the dropdown from closing it
+            dropdownContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+        dropdowns.forEach(dropdown => {
+            const dropdownContent = dropdown.querySelector('.dropdown-content');
+            const button = dropdown.querySelector('button[aria-haspopup="true"]');
+            // Check if the click was outside the dropdown button and content
+            if (dropdownContent && button && !dropdown.contains(event.target)) {
+                dropdownContent.classList.add('hidden');
+                dropdownContent.classList.remove('animate-fade-in-down');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+
+    // Submenu logic
+    const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+    submenuTriggers.forEach(trigger => {
+        const submenuContent = trigger.nextElementSibling; // The submenu content
+        if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+            trigger.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent parent dropdown from closing
+
+                // Close other open submenus within the same parent dropdown
+                const parentDropdownContent = trigger.closest('.dropdown-content');
+                if (parentDropdownContent) {
+                    const otherSubmenus = parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                    otherSubmenus.forEach(otherSubmenu => {
+                        const otherTrigger = otherSubmenu.previousElementSibling;
+                        if (otherSubmenu !== submenuContent && otherTrigger) {
+                            otherSubmenu.classList.add('hidden');
+                            otherSubmenu.classList.remove('animate-fade-in-right');
+                            otherTrigger.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+                }
+
+                // Toggle current submenu
+                submenuContent.classList.toggle('hidden');
+                submenuContent.classList.toggle('animate-fade-in-right');
+                trigger.setAttribute('aria-expanded', submenuContent.classList.contains('hidden') ? 'false' : 'true');
+            });
+
+            // Prevent clicks inside submenu from closing it
+            submenuContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+    });
+
+    // Alert Bell Button Logic
+    const alertBellButton = document.getElementById('alertBellButton');
+    const alertDropdown = document.getElementById('alertDropdown');
+    if (alertBellButton && alertDropdown) {
+        alertBellButton.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevents this click from bubbling up to document
+            alertDropdown.classList.toggle('hidden');
+            alertDropdown.classList.toggle('animate-fade-in-down');
+            alertBellButton.setAttribute('aria-expanded', alertDropdown.classList.contains('hidden') ? 'false' : 'true');
+        });
+
+        alertDropdown.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevents clicks *inside* the dropdown from closing it
+        });
+    }
+});
+
+function logout() {
+    alert('Você foi desconectado.'); // Placeholder for logout logic
+    // window.location.href = 'login.html'; // Redirect to login page
+}
+</script>
+    
+    <main class="max-w-4xl mx-auto my-12 px-4 md:px-6">
+        <h1 class="font-extrabold text-5xl mb-10 text-center text-green-800 tracking-wide select-none">Cadastro de Oficinas</h1>
+        
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg mb-12" aria-label="Formulário de Cadastro de Oficina">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Adicionar Nova Oficina</h2>
+            <form id="oficinaForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label for="nomeOficina" class="block font-semibold mb-2 text-gray-700">Nome da Oficina:</label>
+                    <input type="text" id="nomeOficina" placeholder="Ex: Oficina Central, Mecânica do Zé" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div class="md:col-span-2">
+                    <label for="setorOficina" class="block font-semibold mb-2 text-gray-700">Setor:</label>
+                    <input type="text" id="setorOficina" placeholder="Ex: Manutenção, Elétrica" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div>
+                    <label for="telefoneOficina" class="block font-semibold mb-2 text-gray-700">Telefone:</label>
+                    <input type="tel" id="telefoneOficina" placeholder="(XX) XXXX-XXXX" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div>
+                    <label for="emailOficina" class="block font-semibold mb-2 text-gray-700">E-mail:</label>
+                    <input type="email" id="emailOficina" placeholder="contato@oficina.com.br" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="bg-green-800 text-white font-bold text-lg py-3 px-8 rounded-lg hover:bg-green-700 transition-colors duration-300 shadow-md">
+                        Cadastrar Oficina
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg" aria-label="Tabela de Oficinas Cadastradas">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Oficinas Cadastradas</h2>
+            <div class="overflow-x-auto rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Setor</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-mail</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="oficinasTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="userFeedback" class="fixed bottom-4 right-4 bg-green-600 text-white p-4 rounded-lg shadow-xl hidden z-[1001]" role="alert" aria-live="polite">
+            <p id="feedbackMessage"></p>
+        </div>
+
+        <div id="editOficinaModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="editOficinaModalTitle">
+                <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                    <h3 id="editOficinaModalTitle" class="text-2xl font-bold text-green-900">Editar Oficina</h3>
+                    <button onclick="closeEditOficinaModal()" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full" aria-label="Fechar modal">
+                        <i class="ph ph-x-circle text-3xl"></i>
+                    </button>
+                </div>
+                <div class="overflow-y-auto p-8">
+                    <form id="editOficinaForm" class="flex flex-col gap-4">
+                        <input type="hidden" id="edit-oficinaId">
+                        <div>
+                            <label for="edit-nomeOficina" class="block font-semibold mb-2">Nome da Oficina:</label>
+                            <input type="text" id="edit-nomeOficina" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="edit-setorOficina" class="block font-semibold mb-2">Setor:</label>
+                            <input type="text" id="edit-setorOficina" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="edit-telefoneOficina" class="block font-semibold mb-2">Telefone:</label>
+                            <input type="tel" id="edit-telefoneOficina" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="edit-emailOficina" class="block font-semibold mb-2">E-mail:</label>
+                            <input type="email" id="edit-emailOficina" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                        </div>
+                    </form>
+                </div>
+                <div class="flex justify-end items-center gap-4 mt-8 pt-5 border-t border-gray-200 px-8 pb-8">
+                    <button type="button" onclick="closeEditOficinaModal()" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button type="submit" form="editOficinaForm" class="bg-green-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirmModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm" role="alertdialog" aria-modal="true" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalMessage">
+                <h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mb-4">Confirmar Ação</h3>
+                <p id="confirmModalMessage" class="text-gray-600 mb-6">Você tem certeza que deseja excluir esta oficina?</p>
+                <div class="flex justify-end gap-4">
+                    <button id="confirmModalNo" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button id="confirmModalYes" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">Sim, Excluir</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- SEGURANÇA DE LOGIN ---
+        if (localStorage.getItem('logado') !== 'true') {
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, bypassing login redirect.");
+                localStorage.setItem('logado', 'true');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('logado');
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, logout simulated.");
+            }
+        }
+
+        // --- FUNCIONALIDADE DE DROPDOWN MENUS ---
+        const allDropdownContents = document.querySelectorAll('.dropdown-content');
+
+        function toggleDropdown(id, event) {
+            event.stopPropagation(); 
+            const dropdownContent = document.getElementById(id);
+            if (!dropdownContent) return;
+
+            const currentButton = event.currentTarget;
+            const caretIcon = currentButton.querySelector('.caret-icon');
+
+            allDropdownContents.forEach(openDropdown => {
+                // Close other top-level or sibling nested dropdowns
+                if (openDropdown !== dropdownContent && !dropdownContent.contains(openDropdown) && !openDropdown.contains(dropdownContent)) {
+                    openDropdown.classList.remove('active');
+                    const associatedCaret = openDropdown.previousElementSibling ? openDropdown.previousElementSibling.querySelector('.caret-icon') : null;
+                    if (associatedCaret) {
+                        associatedCaret.classList.remove('rotate');
+                    }
+                }
+            });
+
+            dropdownContent.classList.toggle('active');
+            if (caretIcon) {
+                // Toggle rotation for caret icon only if it's a dropdown or nested dropdown trigger
+                if (caretIcon.classList.contains('ph-caret-down') || caretIcon.classList.contains('ph-caret-right')) {
+                    caretIcon.classList.toggle('rotate');
+                }
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            allDropdownContents.forEach(dropdownContent => {
+                const parentDropdown = dropdownContent.closest('.dropdown');
+                if (parentDropdown && !parentDropdown.contains(event.target) && dropdownContent.classList.contains('active')) {
+                    dropdownContent.classList.remove('active');
+                    const associatedCaret = parentDropdown.querySelector('.caret-icon'); 
+                    if (associatedCaret) {
+                        associatedCaret.classList.remove('rotate');
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners for top-level dropdowns
+            document.querySelectorAll('header .dropdown > button.menu-link').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                if (contentId) {
+                    button.addEventListener('click', (event) => toggleDropdown(contentId, event));
+                }
+            });
+
+            // Event listeners for nested dropdowns
+            document.querySelectorAll('.dropdown-item-nested-trigger').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                if (contentId) {
+                    button.addEventListener('click', (event) => {
+                        event.stopPropagation(); 
+                        const nestedContent = document.getElementById(contentId);
+                        if (nestedContent) {
+                            const parentNestedDropdownContent = button.closest('.dropdown-content');
+                            if (parentNestedDropdownContent) {
+                                parentNestedDropdownContent.querySelectorAll('.nested-dropdown-content.active').forEach(openNested => {
+                                    if (openNested !== nestedContent) {
+                                        openNested.classList.remove('active');
+                                        const openNestedCaret = openNested.previousElementSibling ? openNested.previousElementSibling.querySelector('.caret-icon') : null;
+                                        if (openNestedCaret) openNestedCaret.classList.remove('rotate');
+                                    }
+                                });
+                            }
+
+                            nestedContent.classList.toggle('active');
+                            const caret = button.querySelector('.caret-icon');
+                            if (caret) {
+                                caret.classList.toggle('rotate');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // --- Ativar o menu da página atual e a lógica "arrumada" do cabeçalho ---
+            const currentPath = window.location.pathname.split('/').pop();
+            
+            document.querySelectorAll('.menu-link, .dropdown-item').forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (linkHref && linkHref.includes(currentPath) && currentPath !== '') {
+                    link.classList.add('active-menu');
+                }
+            });
+
+            // Handle specific menu activation for 'Oficinas' with "arrumada" logic
+            if (currentPath === 'oficinas.html') {
+                const oficinasLink = document.querySelector('a[href="oficinas.html"]');
+                if (oficinasLink) {
+                    oficinasLink.classList.add('active-menu'); 
+                    // NO automatic opening of the 'Configurações' dropdown.
+                    // Only the 'Cadastro de Oficinas' link turns yellow.
+                    // To open the menu, the user needs to click on it.
+                }
+            }
+        });
+
+        // --- FUNCIONALIDADE DE MENU MOBILE ---
+        function toggleMobileMenu() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            nav.classList.toggle('active');
+            if (nav.classList.contains('active')) {
+                menuIcon.innerHTML = '<i class="ph ph-x"></i>'; 
+            } else {
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>'; 
+            }
+            // When the mobile menu closes, ensure all internal dropdowns close
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        }
+        
+        // Complete the resize event listener
+        window.addEventListener('resize', function() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            if (window.innerWidth > 768 && nav.classList.contains('active')) {
+                nav.classList.remove('active');
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>';
+            }
+            // When the screen is resized to desktop, ensure all internal dropdowns close
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        });
+
+        // --- CRUD DE OFICINAS ---
+
+        let oficinas = JSON.parse(localStorage.getItem('oficinas')) || [];
+        let nextOficinaId = (oficinas.length > 0 ? Math.max(...oficinas.map(o => o.id)) : 0) + 1;
+
+        const oficinaForm = document.getElementById('oficinaForm');
+        const oficinasTableBody = document.getElementById('oficinasTableBody');
+        const editOficinaModal = document.getElementById('editOficinaModal');
+        const editOficinaForm = document.getElementById('editOficinaForm');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmModalYes = document.getElementById('confirmModalYes');
+        const confirmModalNo = document.getElementById('confirmModalNo');
+        const feedbackDiv = document.getElementById('userFeedback');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+
+        function showFeedback(message, type = 'success') {
+            feedbackMessage.textContent = message;
+            feedbackDiv.classList.remove('hidden', 'bg-green-600', 'bg-red-600');
+            if (type === 'success') {
+                feedbackDiv.classList.add('bg-green-600');
+            } else {
+                feedbackDiv.classList.add('bg-red-600');
+            }
+            feedbackDiv.classList.add('animate-fade-in', 'block');
+            setTimeout(() => {
+                feedbackDiv.classList.remove('animate-fade-in', 'block');
+                feedbackDiv.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        function renderOficinas() {
+            oficinasTableBody.innerHTML = '';
+            if (oficinas.length === 0) {
+                oficinasTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oficina cadastrada.</td></tr>`;
+                return;
+            }
+            oficinas.forEach(oficina => {
+                const row = oficinasTableBody.insertRow();
+                row.className = 'hover:bg-gray-50'; // Tailwind class for hover effect
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${oficina.nome}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${oficina.setor}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${oficina.telefone || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${oficina.email || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="openEditOficinaModal(${oficina.id})" class="text-green-600 hover:text-green-900 mr-4" title="Editar Oficina">
+                            <i class="ph ph-pencil text-xl"></i>
+                        </button>
+                        <button onclick="showConfirmModal(${oficina.id}, '${oficina.nome}')" class="text-red-600 hover:text-red-900" title="Excluir Oficina">
+                            <i class="ph ph-trash text-xl"></i>
+                        </button>
+                    </td>
+                `;
+            });
+        }
+
+        // Add Oficina
+        oficinaForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const nome = document.getElementById('nomeOficina').value.trim();
+            const setor = document.getElementById('setorOficina').value.trim();
+            const telefone = document.getElementById('telefoneOficina').value.trim();
+            const email = document.getElementById('emailOficina').value.trim();
+
+            if (!nome) {
+                showFeedback('O nome da oficina é obrigatório.', 'error');
+                return;
+            }
+            if (!setor) {
+                showFeedback('O setor da oficina é obrigatório.', 'error');
+                return;
+            }
+
+            // Check for duplicate before adding
+            const isDuplicate = oficinas.some(oficina => 
+                oficina.nome.toLowerCase() === nome.toLowerCase() && 
+                oficina.setor.toLowerCase() === setor.toLowerCase()
+            );
+
+            if (isDuplicate) {
+                showFeedback('Esta oficina já está cadastrada para este setor.', 'error');
+                return;
+            }
+
+            const newOficina = {
+                id: nextOficinaId++,
+                nome,
+                setor,
+                telefone,
+                email
+            };
+            oficinas.push(newOficina);
+            localStorage.setItem('oficinas', JSON.stringify(oficinas));
+            renderOficinas();
+            oficinaForm.reset();
+            showFeedback('Oficina cadastrada com sucesso!');
+        });
+
+        // Open Edit Modal
+        function openEditOficinaModal(id) {
+            const oficinaToEdit = oficinas.find(o => o.id === id);
+            if (oficinaToEdit) {
+                document.getElementById('edit-oficinaId').value = oficinaToEdit.id;
+                document.getElementById('edit-nomeOficina').value = oficinaToEdit.nome;
+                document.getElementById('edit-setorOficina').value = oficinaToEdit.setor;
+                document.getElementById('edit-telefoneOficina').value = oficinaToEdit.telefone;
+                document.getElementById('edit-emailOficina').value = oficinaToEdit.email;
+                editOficinaModal.classList.remove('hidden');
+                editOficinaModal.classList.add('flex');
+            }
+        }
+
+        // Close Edit Modal
+        function closeEditOficinaModal() {
+            editOficinaModal.classList.add('hidden');
+            editOficinaModal.classList.remove('flex');
+            editOficinaForm.reset(); // Clear form fields
+        }
+
+        // Save Edited Oficina
+        editOficinaForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = parseInt(document.getElementById('edit-oficinaId').value);
+            const nome = document.getElementById('edit-nomeOficina').value.trim();
+            const setor = document.getElementById('edit-setorOficina').value.trim();
+            const telefone = document.getElementById('edit-telefoneOficina').value.trim();
+            const email = document.getElementById('edit-emailOficina').value.trim();
+
+            if (!nome) {
+                showFeedback('O nome da oficina é obrigatório.', 'error');
+                return;
+            }
+            if (!setor) {
+                showFeedback('O setor da oficina é obrigatório.', 'error');
+                return;
+            }
+
+            // Check for duplicate during edit (excluding the current item being edited)
+            const isDuplicate = oficinas.some(oficina => 
+                oficina.id !== id && // Exclude current item
+                oficina.nome.toLowerCase() === nome.toLowerCase() && 
+                oficina.setor.toLowerCase() === setor.toLowerCase()
+            );
+
+            if (isDuplicate) {
+                showFeedback('Já existe uma oficina com este nome e setor.', 'error');
+                return;
+            }
+
+            const oficinaIndex = oficinas.findIndex(o => o.id === id);
+            if (oficinaIndex !== -1) {
+                oficinas[oficinaIndex] = { id, nome, setor, telefone, email };
+                localStorage.setItem('oficinas', JSON.stringify(oficinas));
+                renderOficinas();
+                closeEditOficinaModal();
+                showFeedback('Oficina atualizada com sucesso!');
+            } else {
+                showFeedback('Erro ao atualizar oficina: Oficina não encontrada.', 'error');
+            }
+        });
+
+        // Show Confirmation Modal
+        let oficinaToDeleteId = null;
+        function showConfirmModal(id, nome) {
+            oficinaToDeleteId = id;
+            document.getElementById('confirmModalMessage').textContent = `Você tem certeza que deseja excluir a oficina "${nome}"?`;
+            confirmModal.classList.remove('hidden');
+            confirmModal.classList.add('flex');
+        }
+
+        // Close Confirmation Modal
+        function closeConfirmModal() {
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+            oficinaToDeleteId = null;
+        }
+
+        // Delete Oficina
+        confirmModalYes.addEventListener('click', function() {
+            if (oficinaToDeleteId !== null) {
+                oficinas = oficinas.filter(o => o.id !== oficinaToDeleteId);
+                localStorage.setItem('oficinas', JSON.stringify(oficinas));
+                renderOficinas();
+                showFeedback('Oficina excluída com sucesso!');
+            }
+            closeConfirmModal();
+        });
+
+        confirmModalNo.addEventListener('click', closeConfirmModal);
+
+        // Initial render on page load
+        document.addEventListener('DOMContentLoaded', renderOficinas);
+
+    </script>
+</body>
+</html>

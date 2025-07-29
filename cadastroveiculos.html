@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Veículos - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/cadastroveiculos.css">
+</head>
+<body class="overflow-x-hidden">
+
+   <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+
+
+<main class="flex-grow container mx-auto p-6">
+    <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Cadastro de Veículos</h1>
+
+    <div class="form-container">
+        <h2 class="text-2xl font-semibold text-green-700 mb-6">Informações do Veículo</h2>
+        <form id="vehicleForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div class="form-group col-span-1 md:col-span-1">
+                <label for="Nome">Nome do Veículo/NúmeroFrota:</label>
+                <input type="text" id="Nome" placeholder="Ex: Scania P420 / 001" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="15">
+            </div>
+            <div class="form-group">
+                <label for="placa">Placa:</label>
+                <input type="text" id="placa" placeholder="ABC1234" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="7">
+            </div>
+            <div class="form-group">
+                <label for="chassi">Chassi:</label>
+                <input type="text" id="chassi" placeholder="Ex: 9BW..." required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="17">
+            </div>
+
+            <div class="form-group">
+                <label for="marca">Marca:</label>
+                <div class="flex items-end">
+                    <select id="marca" name="marca" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione uma Marca</option>
+                    </select>
+                    <button type="button" onclick="openRegisterModal('marca')" class="ml-2 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors flex-shrink-0" title="Adicionar Nova Marca">
+                        <i class="ph ph-plus text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="modelo">Modelo:</label>
+                <div class="flex items-end">
+                    <select id="modelo" name="modelo" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione um Modelo</option>
+                    </select>
+                    <button type="button" onclick="openRegisterModal('modelo')" class="ml-2 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors flex-shrink-0" title="Adicionar Novo Modelo">
+                        <i class="ph ph-plus text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="anoFabricacao">Ano de Fabricação:</label>
+                <input type="number" id="anoFabricacao" placeholder="AAAA" required min="1900" max="2100" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+
+            <div class="form-group">
+                <label for="tipoVeiculo">Tipo de Veículo:</label>
+                <div class="flex items-end">
+                    <select id="tipoVeiculo" name="tipoVeiculo" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione um Tipo</option>
+                    </select>
+                    <button type="button" onclick="openRegisterModal('tipo')" class="ml-2 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors flex-shrink-0" title="Adicionar Novo Tipo de Veículo">
+                        <i class="ph ph-plus text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="combustivel">Combustível:</label>
+                <div class="flex items-end">
+                    <select id="combustivel" name="combustivel" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione um Combustível</option>
+                    </select>
+                    <button type="button" onclick="openRegisterModal('combustivel')" class="ml-2 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors flex-shrink-0" title="Adicionar Novo Combustível">
+                        <i class="ph ph-plus text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="cor">Cor:</label>
+                <input type="text" id="cor" placeholder="Ex: Azul" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="renavam">Renavam:</label>
+                <input type="text" id="renavam" placeholder="Ex: 12345678901" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" maxlength="11">
+            </div>
+            <div class="form-group">
+                <label for="quilometragemAtual">Quilometragem Atual (KM):</label>
+                <input type="number" id="quilometragemAtual" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="horimetroAtual">Horimetro Atual (HR):</label>
+                <input type="number" id="horimetroAtual" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select id="status" name="status" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                    <option value="ATIVO">ATIVO</option>
+                    <option value="INATIVO">INATIVO</option>  
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="ultimaRevisao">Última Revisão:</label>
+                <input type="date" id="ultimaRevisao" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="quilometragemRevisao">Quilometragem (Última Revisão) (KM):</label>
+                <input type="number" id="quilometragemRevisao" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="horimetroRevisao">Horimetro (Última Revisão) (HR):</label>
+                <input type="number" id="horimetroRevisao" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div class="form-group col-span-2">
+                <label for="documentUpload" class="block font-semibold mb-2">Anexar Documentos:</label>
+                <input type="file" id="documentUpload" multiple accept=".pdf,.doc,.docx,.jpg,.png" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                <div id="file-name" class="mt-2 text-sm text-gray-600">Nenhum arquivo selecionado.</div> <p class="text-xs text-gray-500 mt-1">Formatos aceitos: PDF, DOC, DOCX, JPG, PNG. (Apenas os nomes dos arquivos são armazenados no navegador).</p>
+            </div>
+
+            <div class="form-group col-span-full flex items-center gap-4 mt-2">
+                <input type="checkbox" id="hasPMP" class="form-checkbox h-5 w-5 text-green-600 rounded">
+                <label for="hasPMP" class="text-gray-700 font-medium">Possui PMP (Plano de Manutenção Preventiva)</label>
+            </div>
+            <div class="form-group col-span-full flex items-center gap-4">
+                <input type="checkbox" id="hasPL" class="form-checkbox h-5 w-5 text-green-600 rounded">
+                <label for="hasPL" class="text-gray-700 font-medium">Possui PL (Plano de Lubrificação)</label>
+            </div>
+
+            <div class="col-span-full flex justify-end">
+                <button type="submit" class="btn-submit">
+                    <i class="ph ph-plus-circle text-2xl"></i>
+                    Cadastrar Veículo
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="list-container mt-10">
+        <h2 class="text-2xl font-semibold text-green-700 mb-6">Veículos Cadastrados</h2>
+      <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Cadastro</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modelo</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ano Fabricação</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo Veículo</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KM Atual</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HR Atual</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RENAVAM</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última Revisão</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última KM Revisão</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última HR Revisão</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="vehicleTableBody" class="bg-white divide-y divide-gray-200">
+            </tbody>
+    </table>
+</div>
+    </div>        
+</main>
+
+<div id="editVehicleModal" class="modal hidden">
+    <div class="modal-content max-w-4xl">
+        <div class="modal-header">
+            <h2 class="text-3xl font-bold text-green-700">Editar Veículo</h2>
+            <button onclick="closeEditVehicleModal()" class="modal-close-button" aria-label="Fechar modal de edição">
+                <i class="ph ph-x-circle"></i>
+            </button>
+        </div>
+        <form id="editVehicleForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 p-6">
+            <div class="form-group col-span-1 md:col-span-1">
+                <label for="edit-Nome">Nome do Veículo/NúmeroFrota:</label>
+                <input type="text" id="edit-Nome" placeholder="Ex: Scania P420 / 001" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="15">
+            </div>
+            <div class="form-group">
+                <label for="edit-placa">Placa:</label>
+                <input type="text" id="edit-placa" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="7">
+            </div>
+            <div class="form-group">
+                <label for="edit-chassi">Chassi:</label>
+                <input type="text" id="edit-chassi" placeholder="Ex: 9BW..." required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 uppercase" maxlength="17">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-marca">Marca:</label>
+                <select id="edit-marca" name="marca" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                    <option value="">Selecione uma Marca</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-modelo">Modelo:</label>
+                <select id="edit-modelo" name="modelo" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                    <option value="">Selecione um Modelo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-anoFabricacao">Ano de Fabricação:</label>
+                <input type="number" id="edit-anoFabricacao" placeholder="AAAA" required min="1900" max="2100" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-tipoVeiculo">Tipo de Veículo:</label>
+                <select id="edit-tipoVeiculo" name="tipoVeiculo" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                    <option value="">Selecione um Tipo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-combustivel">Combustível:</label>
+                <select id="edit-combustivel" name="combustivel" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                    <option value="">Selecione um Combustível</option>
+                </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-cor">Cor:</label>
+                <input type="text" id="edit-cor" placeholder="Ex: Azul" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="edit-renavam">Renavam:</label>
+                <input type="text" id="edit-renavam" placeholder="Ex: 12345678901" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" maxlength="11">
+            </div>
+            <div class="form-group">
+                <label for="edit-quilometragemAtual">Quilometragem Atual (KM):</label>
+                <input type="number" id="edit-quilometragemAtual" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="edit-horimetroAtual">Horimetro Atual (HR):</label>
+                <input type="number" id="edit-horimetroAtual" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="edit-status">Status:</label>
+                <select id="edit-status" name="status" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                    <option value="ATIVO">ATIVO</option>
+                    <option value="INATIVO">INATIVO</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit-ultimaRevisao">Última Revisão:</label>
+                <input type="date" id="edit-ultimaRevisao" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="edit-quilometragemRevisao">Quilometragem (Última Revisão) (KM):</label>
+                <input type="number" id="edit-quilometragemRevisao" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="form-group">
+                <label for="edit-horimetroRevisao">Horimetro (Última Revisão) (HR):</label>
+                <input type="number" id="edit-horimetroRevisao" placeholder="Ex: 50000" min="0" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div class="form-group col-span-2">
+                <label for="edit-documentUpload" class="block font-semibold mb-2">Anexar Documentos:</label>
+                <input type="file" id="edit-documentUpload" multiple accept=".pdf,.doc,.docx,.jpg,.png" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                <div id="edit-documentList" class="mt-2 text-sm text-gray-600"></div>
+                <p class="text-xs text-gray-500 mt-1">Formatos aceitos: PDF, DOC, DOCX, JPG, PNG. (Apenas os nomes dos arquivos são armazenados no navegador).</p>
+            </div>
+
+            <div class="form-group col-span-full flex items-center gap-4 mt-2">
+                <input type="checkbox" id="edit-hasPMP" class="form-checkbox h-5 w-5 text-green-600 rounded">
+                <label for="edit-hasPMP" class="text-gray-700 font-medium">Possui PMP (Plano de Manutenção Preventiva)</label>
+            </div>
+            <div class="form-group col-span-full flex items-center gap-4">
+                <input type="checkbox" id="edit-hasPL" class="form-checkbox h-5 w-5 text-green-600 rounded">
+                <label for="edit-hasPL" class="text-gray-700 font-medium">Possui PL (Plano de Lubrificação)</label>
+            </div>
+
+            <div class="modal-footer col-span-full flex justify-end gap-3">
+                <button type="button" onclick="closeEditVehicleModal()" class="btn-cancel">Cancelar</button>
+                <button type="submit" class="btn-save-modal">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="registerModal" class="modal hidden">
+    <div class="modal-content max-w-md">
+        <div class="modal-header">
+            <h3 id="registerModalTitle" class="text-2xl font-bold text-green-900">Cadastrar Novo Item</h3>
+            <button onclick="closeRegisterModal()" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full" aria-label="Fechar modal">
+                <i class="ph ph-x-circle text-3xl"></i>
+            </button>
+        </div>
+        <div class="p-8">
+            <div class="mb-4">
+                <label for="registerName" class="block font-semibold mb-2">Nome do Item:</label>
+                <input type="text" id="registerName" placeholder="Digite o nome" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+            </div>
+            <button type="button" onclick="addRegisterItem()" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                Adicionar
+            </button>
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold mb-3 text-gray-800">Itens Cadastrados:</h4>
+                <ul id="registerList" class="border border-gray-200 rounded-lg divide-y divide-gray-100">
+                    </ul>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="closeRegisterModal()" class="btn-cancel">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<div id="userFeedback" class="hidden"></div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/pt-BR.js"></script>
+
+<script src="js/cadastroveiculos.js"></script>
+
+</body>
+</html>

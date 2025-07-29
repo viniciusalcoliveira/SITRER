@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BFM Frotas - PMP com Edição/Exclusão</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f4f8; color: #2c3e50; }
+        /* Estilos do Cabeçalho e Menus */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .animate-fade-in-right { animation: fadeInRight 0.3s ease-out forwards; }
+        .dropdown-item { padding: 0.75rem 1.5rem; color: #374151; font-weight: 500; display: block; width: 100%; text-align: left; transition: background-color 0.2s ease, color 0.2s ease; }
+        .dropdown-item:hover { background-color: #e0f2f7; color: #1e7e15; }
+        .submenu-trigger { width: 100%; text-align: left; padding: 0.75rem 1.5rem; color: #374151; font-weight: 500; display: flex; align-items: center; justify-content: space-between; background-color: transparent; border: none; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease; }
+        .submenu-trigger:hover { background-color: #e0f2f7; color: #0da326; }
+        .ph-caret-down { transition: transform 0.2s ease-in-out; }
+        .menu-link[aria-expanded="true"] .ph-caret-down { transform: rotate(180deg); }
+        .ph-caret-right { transition: transform 0.2s ease-in-out; }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right { transform: rotate(90deg); }
+        .dropdown-content { position: absolute; top: 100%; left: 0; background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 220px; z-index: 9999; border: 1px solid #e2e8f0; padding: 0.5rem 0; }
+        .submenu-content { position: absolute; top: 0; left: 100%; margin-left: 0.5rem; background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 220px; z-index: 9999; border: 1px solid #e2e8f0; padding: 0.5rem 0; }
+        /* Estilos do Formulário e Conteúdo */
+        .form-container, .plan-list-container, .modal-content { background-color: #ffffff; padding: 2.5rem; border-radius: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155; }
+        .form-group input:not([type="radio"]), .form-group select { width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 1rem; color: #475569; }
+        
+        /* Melhorias para os radio buttons */
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        .radio-group > div {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-group input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3b82f6;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .radio-group input[type="radio"]:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        .radio-group input[type="radio"]:checked::before {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .radio-group label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 0;
+        }
+
+        /* Botões de Ação */
+        .btn-submit, .btn-save-modal {
+            background-color: #16a34a;
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.025em;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 8px rgba(22, 163, 74, 0.2);
+        }
+        .btn-submit:hover, .btn-save-modal:hover {
+            background-color: #15803d;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        .checklist-items-container { border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.5rem; background-color: #f8fafc; margin-bottom: 1.5rem; }
+        .checklist-item { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem 1.5rem; align-items: flex-end; border-bottom: 1px dashed #cbd5e1; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+        .checklist-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .btn-add-item {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .btn-add-item:hover { background-color: #2563eb; }
+        .plan-list-item {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .plan-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #cbd5e1;
+            align-items: baseline;
+        }
+        .plan-header > div span {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        .plan-header > div strong {
+            display: block;
+            font-size: 1.1rem;
+        }
+
+        .plan-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+        .btn-edit, .btn-delete, .btn-cancel {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-edit { background-color: #3b82f6; } .btn-edit:hover { background-color: #2563eb; transform: translateY(-1px); }
+        .btn-delete { background-color: #ef4444; } .btn-delete:hover { background-color: #dc2626; transform: translateY(-1px); }
+        .btn-cancel { background-color: #64748b; } .btn-cancel:hover { background-color: #475569; transform: translateY(-1px); }
+        
+        /* Estilos do Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 1rem; }
+        .modal.active { display: flex; }
+        .modal-content { width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; margin-top: 2rem; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+    <main class="flex-1 p-6 md:p-8">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <section class="form-container">
+                <h1 class="text-4xl font-extrabold text-center text-green-800 mb-8">Cadastro de Plano de Manutenção Preventiva (PMP)</h1>
+                <form id="cadastroPlanoForm"></form>
+            </section>
+            <section class="plan-list-container mt-12">
+                <h1 class="text-4xl font-extrabold text-center text-green-800 mb-8">Planos Cadastrados</h1>
+                <div id="registeredPlansList" class="space-y-6"></div>
+            </section>
+        </div>
+    </main>
+    
+    <div id="editPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-2xl font-bold text-green-800">Editar Plano de Manutenção</h2>
+                <button id="closeModalBtn" class="text-2xl">&times;</button>
+            </div>
+            <form id="editPlanoForm"></form>
+        </div>
+    </div>
+
+    <script>
+    // --- LÓGICA DO MENU DROPDOWN ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const setupDropdown = (dropdownId, menuId) => {
+            const dropdown = document.getElementById(dropdownId);
+            // Procura tanto por menu-link quanto por submenu-trigger
+            const menuButton = dropdown.querySelector('.menu-link') || dropdown.querySelector('.submenu-trigger');
+            const menuContent = document.getElementById(menuId);
+
+            if (!menuButton || !menuContent) return;
+
+            const toggleMenu = () => {
+                const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+                menuButton.setAttribute('aria-expanded', !isExpanded);
+                menuContent.classList.toggle('hidden', isExpanded);
+                if (!isExpanded) {
+                    // Adiciona a animação apenas se estiver abrindo
+                    // Verifica se é um submenu para usar a animação correta
+                    if (dropdown.classList.contains('group')) {
+                        menuContent.classList.remove('animate-fade-in-down'); // Remove animação do pai se presente
+                        menuContent.classList.add('animate-fade-in-right');
+                    } else {
+                        menuContent.classList.add('animate-fade-in-down');
+                        menuContent.classList.remove('animate-fade-in-right'); // Remove animação de submenu se presente
+                    }
+                } else {
+                    menuContent.classList.remove('animate-fade-in-down', 'animate-fade-in-right');
+                }
+            };
+
+            menuButton.addEventListener('click', toggleMenu);
+
+            // Close dropdown if clicked outside
+            document.addEventListener('click', (event) => {
+                if (!dropdown.contains(event.target) && !menuContent.contains(event.target)) {
+                    menuButton.setAttribute('aria-expanded', 'false');
+                    menuContent.classList.add('hidden');
+                }
+            });
+
+            // Handle submenu animations (for dropdowns with nested menus)
+            // Esta parte foi ajustada e integrada diretamente na função toggleMenu acima
+        };
+
+        // Initialize main dropdowns
+        setupDropdown('dropdown-configuracoes', 'menu-configuracoes');
+        setupDropdown('dropdown-plano', 'menu-plano'); // Novo dropdown
+        setupDropdown('dropdown-os', 'menu-os');       // Novo dropdown
+        setupDropdown('dropdown-gerenciamento', 'menu-gerenciamento'); // Novo dropdown
+        setupDropdown('dropdown-alerts', 'alertDropdown'); // Botão de alerta, tratado como dropdown
+
+        // Initialize submenus dentro de "Configurações"
+        setupDropdown('dropdown-veiculos-submenu', 'menu-veiculos-submenu');
+        setupDropdown('dropdown-servicos-submenu', 'menu-servicos-submenu');
+        setupDropdown('dropdown-oficina-submenu', 'menu-oficina-submenu'); // Novo submenu
+        setupDropdown('dropdown-produtos-submenu', 'menu-produtos-submenu'); // Novo submenu
+    });
+
+    function logout() {
+        alert('Você foi desconectado.');
+        // Aqui você pode adicionar a lógica para limpar a sessão, redirecionar para a página de login, etc.
+        // window.location.href = 'login.html';
+    }
+
+    // --- LÓGICA PRINCIPAL DA PÁGINA: GESTÃO DE PLANOS DE MANUTENÇÃO ---
+    document.addEventListener('DOMContentLoaded', async function() {
+        // --- 1. CONFIGURAÇÕES E DADOS GLOBAIS ---
+        const LOCAL_STORAGE_PLANS_KEY = 'bfmFrotas_maintenancePlans';
+        
+        // CHAVES DE LOCAL_STORAGE PARA CADA PÁGINA DE CADASTRO EXTERNA
+        // ESTAS CHAVES DEVEM SER USADAS PELAS PÁGINAS DE CADASTRO CORRESPONDENTES
+        const LOCAL_STORAGE_COMPARTMENTS_KEY = 'bfmFrotas_cadastros_compartimentos';
+        const LOCAL_STORAGE_SERVICES_KEY = 'bfmFrotas_cadastros_servicos';
+        const LOCAL_STORAGE_ACTIONS_KEY = 'bfmFrotas_cadastros_acoes';
+
+        let simulatedPlans = [];
+        // Não precisamos mais carregar compartimentos, serviços e ações para os dropdowns,
+        // mas as funções de fetch podem ser mantidas caso sejam usadas para validação futura,
+        // ou se essas listas forem necessárias para outras partes do sistema.
+        let compartimentos = []; // Vai ser um array vazio ou não utilizado para preencher inputs
+        let servicos = [];       // Vai ser um array vazio ou não utilizado para preencher inputs
+        let acoes = [];          // Vai ser um array vazio ou não utilizado para preencher inputs
+
+        const mainForm = document.getElementById('cadastroPlanoForm');
+        const plansListDiv = document.getElementById('registeredPlansList');
+        const modal = document.getElementById('editPlanModal');
+        const editForm = document.getElementById('editPlanoForm');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // --- 2. FUNÇÕES DE PERSISTÊNCIA DE DADOS (localStorage) ---
+
+        /**
+         * Carrega dados do localStorage.
+         * @param {string} key A chave para o localStorage.
+         * @returns {Array} Os dados carregados ou um array vazio se nada for encontrado.
+         */
+        function loadFromLocalStorage(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        /**
+         * Salva dados no localStorage.
+         * @param {string} key A chave para o localStorage.
+         * @param {Array} data Os dados a serem salvos.
+         */
+        function saveToLocalStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // --- 3. FUNÇÕES DE "FETCH" DE OUTRAS PÁGINAS DE CADASTRO (VIA LOCALSTORAGE) ---
+        // Estas funções agora APENAS carregam do localStorage das respectivas chaves.
+        // Elas esperam que as outras páginas já tenham salvo os dados nessas chaves.
+        // Mantidas, mas as variáveis (compartimentos, servicos, acoes) não serão usadas para preencher SELECTs.
+
+        async function fetchCompartimentos() {
+            compartimentos = loadFromLocalStorage(LOCAL_STORAGE_COMPARTMENTS_KEY);
+            return compartimentos;
+        }
+
+        async function fetchServicos() {
+            servicos = loadFromLocalStorage(LOCAL_STORAGE_SERVICES_KEY);
+            return servicos;
+        }
+
+        async function fetchAcoes() {
+            acoes = loadFromLocalStorage(LOCAL_STORAGE_ACTIONS_KEY);
+            return acoes;
+        }
+
+        /**
+         * Carrega os planos de manutenção do localStorage.
+         */
+        function loadPlans() {
+            simulatedPlans = loadFromLocalStorage(LOCAL_STORAGE_PLANS_KEY);
+        }
+
+        /**
+         * Salva os planos de manutenção no localStorage.
+         */
+        function savePlans() {
+            saveToLocalStorage(LOCAL_STORAGE_PLANS_KEY, simulatedPlans);
+        }
+
+        // --- 4. FUNÇÕES DE RENDERIZAÇÃO E MANIPULAÇÃO DO DOM ---
+
+        // A função createOptions não é mais necessária para os campos de texto.
+        // Ela pode ser removida ou mantida se outros dropdowns ainda precisarem dela.
+        // Para os campos alterados, ela não será chamada.
+
+        /**
+         * Cria o HTML para um item de checklist individual.
+         * @param {string|number} id Um ID único para o item (usado para remoção).
+         * @param {object} data Dados para preencher o item de checklist (compartimento, servico, acao, quantidade).
+         * @returns {string} String HTML do item de checklist.
+         */
+        function createChecklistItemHTML(id, data = {}) {
+            return `
+                <div class="checklist-item" data-item-id="${id}">
+                    <div class="form-group"><label>Compartimento:</label><input type="text" class="checklist-compartimento" value="${data.compartimento || ''}" placeholder="Ex: Motor" required></div>
+                    <div class="form-group"><label>Serviço:</label><input type="text" class="checklist-servico" value="${data.servico || ''}" placeholder="Ex: Troca de Óleo" required></div>
+                    <div class="form-group"><label>Ação:</label><input type="text" class="checklist-acao" value="${data.acao || ''}" placeholder="Ex: Verificar Nível" required></div>
+                    <div class="form-group"><label>Quantidade:</label><input type="number" class="checklist-quantidade" placeholder="1" value="${data.quantidade || '1'}" min="1"></div>
+                    <button type="button" class="btn-delete self-end" onclick="this.closest('.checklist-item').remove()"><i class="ph-fill ph-x-circle"></i> Remover</button>
+                </div>`;
+        }
+        
+        /**
+         * Preenche o conteúdo de um formulário (cadastro principal ou modal de edição).
+         * @param {HTMLElement} formElement O elemento <form> a ser preenchido.
+         * @param {object} planData Os dados do plano para pré-preencher o formulário (vazio para novo).
+         */
+        function renderFormContent(formElement, planData = {}) {
+            const checklistContainerId = `checklist-container-${formElement.id}`;
+            const uniqueIdSuffix = formElement.id;
+            formElement.innerHTML = `
+                <input type="hidden" id="planId" value="${planData.id || ''}">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group"><label for="nomePlano_${uniqueIdSuffix}">Nome do Plano:</label><input type="text" id="nomePlano_${uniqueIdSuffix}" class="nomePlano" value="${planData.nomePlano || ''}" required></div>
+                    <div class="form-group"><label for="modeloVeiculo_${uniqueIdSuffix}">Modelo do Veículo:</label><input type="text" id="modeloVeiculo_${uniqueIdSuffix}" class="modeloVeiculo" value="${planData.modeloVeiculo || ''}" required></div>
+                </div>
+                <div class="form-group">
+                    <label>Critério:</label>
+                    <div class="radio-group">
+                        <div class="flex items-center">
+                            <input type="radio" name="criterioProgramacao-${uniqueIdSuffix}" id="criterio_km_${uniqueIdSuffix}" value="km" ${planData.criterioProgramacao === 'km' || planData.criterioProgramacao === undefined ? 'checked' : ''}>
+                            <label for="criterio_km_${uniqueIdSuffix}">Por KM</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="criterioProgramacao-${uniqueIdSuffix}" id="criterio_horas_${uniqueIdSuffix}" value="horas" ${planData.criterioProgramacao === 'horas' ? 'checked' : ''}>
+                            <label for="criterio_horas_${uniqueIdSuffix}">Por Horas</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group"><label for="valorProgramacao_${uniqueIdSuffix}">Próxima Manutenção (KM/Horas):</label><input type="number" id="valorProgramacao_${uniqueIdSuffix}" class="valorProgramacao" value="${planData.valorProgramacao || ''}" required></div>
+                
+                <h3 class="text-xl font-bold text-green-700 mt-6 mb-4">Itens do Checklist</h3>
+                <div id="${checklistContainerId}" class="checklist-items-container"></div>
+                <button type="button" class="btn-add-item"><i class="ph-fill ph-plus-circle"></i> Adicionar Item</button>
+                <div class="modal-footer mt-8 pt-4 border-t">
+                    ${formElement.id === 'editPlanoForm' ? '<button type="button" class="btn-cancel"><i class="ph-fill ph-x"></i> Cancelar</button>' : ''}
+                    <button type="submit" class="btn-submit w-full md:w-auto flex items-center justify-center gap-2"><i class="ph-fill ph-floppy-disk"></i> ${formElement.id === 'editPlanoForm' ? 'Salvar Alterações' : 'Salvar Plano'}</button>
+                </div>
+            `;
+
+            const checklistContainer = formElement.querySelector(`#${checklistContainerId}`);
+            if (planData.checklist && planData.checklist.length > 0) {
+                planData.checklist.forEach((item, index) => {
+                    checklistContainer.insertAdjacentHTML('beforeend', createChecklistItemHTML(`item_${planData.id}_${index}`, item));
+                });
+            } else {
+                // Adiciona um item vazio se não houver checklist ou se for um novo plano
+                checklistContainer.insertAdjacentHTML('beforeend', createChecklistItemHTML(`item_new_${Date.now()}`));
+            }
+            
+            formElement.querySelector('.btn-add-item').addEventListener('click', () => {
+                const newItemId = Date.now();
+                checklistContainer.insertAdjacentHTML('beforeend', createChecklistItemHTML(newItemId));
+            });
+            
+            if(formElement.id === 'editPlanoForm') {
+                formElement.querySelector('.btn-cancel').addEventListener('click', () => modal.classList.remove('active'));
+            }
+        }
+        
+        /**
+         * Renderiza a lista de planos cadastrados na interface.
+         */
+        function renderPlansList() {
+            plansListDiv.innerHTML = '';
+            if (simulatedPlans.length === 0) {
+                plansListDiv.innerHTML = '<p class="text-center text-gray-500">Nenhum plano de manutenção cadastrado ainda.</p>';
+                return;
+            }
+            simulatedPlans.forEach(plan => {
+                const checklistHtml = plan.checklist.map(item => `
+                    <li class="flex items-center gap-2 text-gray-700 text-sm">
+                        <i class="ph-fill ph-check-circle text-green-500"></i>
+                        <span>${item.acao} ${item.servico} (${item.quantidade}) no(a) <strong>${item.compartimento}</strong></span>
+                    </li>
+                `).join('');
+
+                const planCard = document.createElement('div');
+                planCard.className = 'plan-list-item';
+                planCard.innerHTML = `
+                    <div class="plan-header">
+                        <div><span class="font-medium">Nome do Plano:</span><br><strong class="text-green-700 text-lg">${plan.nomePlano}</strong></div>
+                        <div><span class="font-medium">Veículo Aplicável:</span><br><strong>${plan.modeloVeiculo}</strong></div>
+                        <div><span class="font-medium">Critério:</span><br><strong>${plan.valorProgramacao.toLocaleString('pt-BR')} ${plan.criterioProgramacao.toUpperCase()}</strong></div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="font-bold text-gray-800 mb-2">Detalhes do Checklist:</p>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            ${checklistHtml}
+                        </ul>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="btn-edit" data-id="${plan.id}"><i class="ph-fill ph-pencil-simple"></i> Editar</button>
+                        <button class="btn-delete" data-id="${plan.id}"><i class="ph-fill ph-trash"></i> Excluir</button>
+                    </div>
+                `;
+                plansListDiv.appendChild(planCard);
+            });
+        }
+
+        // --- 5. LÓGICA DE EVENTOS (CRIAR, EDITAR, EXCLUIR) ---
+
+        /**
+         * Coleta os dados de um plano a partir de um elemento de formulário.
+         * @param {HTMLElement} formElement O elemento <form> do qual coletar os dados.
+         * @returns {object} Um objeto contendo os dados do plano.
+         */
+        function getPlanDataFromForm(formElement) {
+            const id = formElement.querySelector('#planId').value;
+            const checklist = [];
+            formElement.querySelectorAll('.checklist-item').forEach(item => {
+                checklist.push({
+                    compartimento: item.querySelector('.checklist-compartimento').value,
+                    servico: item.querySelector('.checklist-servico').value,
+                    acao: item.querySelector('.checklist-acao').value,
+                    quantidade: item.querySelector('.checklist-quantidade').value
+                });
+            });
+            return {
+                id: id || `plan_${Date.now()}`,
+                nomePlano: formElement.querySelector('.nomePlano').value,
+                modeloVeiculo: formElement.querySelector('.modeloVeiculo').value,
+                criterioProgramacao: formElement.querySelector(`input[name^="criterioProgramacao"]:checked`).value,
+                valorProgramacao: parseInt(formElement.querySelector('.valorProgramacao').value, 10),
+                checklist: checklist
+            };
+        }
+
+        // Evento para CRIAR um novo plano
+        mainForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newPlan = getPlanDataFromForm(mainForm);
+            simulatedPlans.push(newPlan);
+            savePlans();
+            renderPlansList();
+            renderFormContent(mainForm); // Limpa e reseta o formulário principal
+            alert('✅ Plano de manutenção salvo com sucesso!');
+        });
+
+        // Evento para SALVAR um plano editado
+        editForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const updatedPlan = getPlanDataFromForm(editForm);
+            const planIndex = simulatedPlans.findIndex(p => p.id === updatedPlan.id);
+            if (planIndex > -1) {
+                simulatedPlans[planIndex] = updatedPlan;
+                savePlans();
+                renderPlansList();
+                modal.classList.remove('active');
+                alert('✏️ Plano de manutenção atualizado com sucesso!');
+            }
+        });
+
+        // Event Delegation para cliques de EDITAR e EXCLUIR na lista de planos
+        plansListDiv.addEventListener('click', (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            
+            const planId = target.dataset.id;
+            
+            if (target.classList.contains('btn-edit')) {
+                const planToEdit = simulatedPlans.find(p => p.id === planId);
+                if (planToEdit) {
+                    renderFormContent(editForm, planToEdit);
+                    modal.classList.add('active');
+                }
+            }
+            
+            if (target.classList.contains('btn-delete')) {
+                if (confirm(`Tem certeza que deseja excluir o plano "${simulatedPlans.find(p => p.id === planId)?.nomePlano}"?`)) {
+                    simulatedPlans = simulatedPlans.filter(p => p.id !== planId);
+                    savePlans();
+                    renderPlansList();
+                    alert('🗑️ Plano de manutenção excluído.');
+                }
+            }
+        });
+        
+        // Fechar modal ao clicar no botão 'X'
+        closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
+
+        // Fechar modal ao clicar fora dele
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        // --- Lógica de Alertas (adicionada para o novo header) ---
+        const alertBellButton = document.getElementById('alertBellButton');
+        const alertDropdown = document.getElementById('alertDropdown');
+        const alertCountSpan = document.getElementById('alertCount');
+        const alertListDiv = document.getElementById('alertList');
+
+        function updateAlertsDisplay() {
+            // Esta é uma simulação. Em um sistema real, você buscaria alertas de um backend.
+            const alerts = loadFromLocalStorage('bfmFrotas_alerts') || [];
+            if (alerts.length > 0) {
+                alertCountSpan.textContent = alerts.length;
+                alertCountSpan.style.display = 'block';
+                alertListDiv.innerHTML = alerts.map(alert =>
+                    `<p class="text-sm text-gray-700 mb-1">${alert}</p>`
+                ).join('');
+            } else {
+                alertCountSpan.style.display = 'none';
+                alertListDiv.innerHTML = '<p class="text-sm text-gray-500">Nenhum alerta no momento.</p>';
+            }
+        }
+
+        // Exemplo de como adicionar um alerta (para teste, pode ser removido)
+        function addAlert(message) {
+            let alerts = loadFromLocalStorage('bfmFrotas_alerts') || [];
+            alerts.push(message);
+            saveToLocalStorage('bfmFrotas_alerts', alerts);
+            updateAlertsDisplay();
+        }
+
+        // addAlert('Veículo ABC-1234 com manutenção pendente!'); // Descomente para testar um alerta
+        // addAlert('Nível de combustível baixo no Veículo XYZ-5678.'); // Descomente para testar outro alerta
+
+
+        // --- 6. INICIALIZAÇÃO DA PÁGINA ---
+        // Carrega os dados das "páginas de cadastro" via localStorage (compartimentos, serviços, ações)
+        // Embora não sejam mais usados para preencher SELECTs, a lógica de carregamento ainda é importante
+        // caso essas listas sejam utilizadas para validação ou outras funcionalidades.
+        await fetchCompartimentos();
+        await fetchServicos();
+        await fetchAcoes();
+        
+        loadPlans();                    // Carrega os planos de manutenção
+        renderFormContent(mainForm);    // Desenha o formulário principal pela primeira vez
+        renderPlansList();              // Desenha a lista inicial de planos
+        updateAlertsDisplay();          // Atualiza a exibição de alertas
+    });
+    </script>
+</body>
+</html>

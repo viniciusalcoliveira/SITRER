@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Tipo de Veículo - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+     <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+      /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top;
+        }
+
+        /* Custom animation for submenu fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right {
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left;
+        }
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Styles for dropdown content (main menus) */
+        .dropdown-content {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 220px;
+            background-color: white;
+            border-radius: 0.75rem;
+            z-index: 1000; /* This seems reasonable for a dropdown */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Styles for submenu content (nested menus) */
+        .submenu-content {
+            position: absolute;
+            top: 0;
+            left: 100%; /* Opens to the right */
+            min-width: 220px;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 10000; /* Higher than main dropdown for submenus */
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e2e8f0; /* Small border for visual separation */
+        }
+
+        /* Adjust caret rotation for main dropdowns */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Rotates up when open */
+        }
+
+        /* Adjust caret rotation for submenus */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open (if opening right) */
+        }
+
+       /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Active dropdown item styling */
+        .active-menu-dropdown-item {
+            background-color: #e0f2f7; /* Lighter background for active item */
+            color: #1e7e15; /* Primary green for active text */
+            font-weight: 600; /* Bolder text for active item */
+        }
+
+        /* Active submenu trigger styling */
+        .active-menu-submenu-trigger {
+            background-color: #e0f2f7; /* Lighter background for active trigger */
+            color: #1e7e15; /* Primary green for active trigger text */
+            font-weight: 600; /* Bolder text for active trigger */
+        }
+    /* Responsive adjustments for mobile */
+    @media (max-width: 767px) { /* Tailwind's md breakpoint is 768px */
+        .md\:flex-row {
+            flex-direction: column;
+        }
+        .md\:mb-0 {
+            margin-bottom: 1rem; /* Adjust margin for mobile brand */
+        }
+        .nav {
+            width: 100%;
+            flex-direction: column;
+            align-items: flex-start;
+            padding-top: 1rem;
+        }
+        .menu-link, .dropdown > button {
+            width: 100%;
+            text-align: left;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        /* Main dropdowns revert to full width and relative positioning for mobile */
+        .dropdown-content {
+            position: static !important; /* Override absolute for mobile */
+            width: 100%;
+            border-radius: 0;
+            box-shadow: none;
+            border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+            padding-left: 1rem; /* Indent dropdown items */
+        }
+        /* Submenus also revert to full width and static positioning for mobile */
+        .submenu-content {
+            position: static !important; /* Override absolute for mobile */
+            width: 100%;
+            border-radius: 0;
+            box-shadow: none;
+            border-left: none; /* Remove left border */
+            border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+            padding-left: 2rem; /* Further indent nested items */
+        }
+
+        .ph-caret-down, .ph-caret-right {
+            transform: rotate(0deg) !important; /* Reset rotation for mobile */
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down,
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(180deg) !important; /* Still rotate down for consistency in mobile dropdowns */
+        }
+    }
+
+        /* Form styling */
+        .form-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155; /* slate-700 */
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #475569; /* slate-700 */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #16a34a; /* green-600 */
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); /* green-600 with opacity */
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .radio-group div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-group input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.2s ease;
+        }
+
+        .radio-group input[type="radio"]:checked {
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .radio-group input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.75rem;
+            height: 0.75rem;
+            background-color: #16a34a; /* green-600 */
+            border-radius: 50%;
+        }
+
+        .radio-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #94a3b8; /* slate-400 */
+            border-radius: 0.375rem; /* rounded-md */
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            background-color: #16a34a; /* green-600 */
+            border-color: #16a34a; /* green-600 */
+        }
+
+        .checkbox-group input[type="checkbox"]:checked::after {
+            content: '\2713'; /* Checkmark character */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: bold;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .btn-submit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 2rem;
+        }
+
+        .btn-submit:hover {
+            background-color: #15803d; /* green-700 */
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .checklist-items-container {
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: #f8fafc; /* slate-50 */
+            margin-bottom: 1.5rem;
+        }
+
+        .checklist-item {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjusted minmax for more fields */
+            gap: 1rem 1.5rem; /* Row gap, column gap */
+            align-items: flex-end;
+            border-bottom: 1px dashed #cbd5e1; /* slate-300 */
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .checklist-item .form-group {
+            margin-bottom: 0; /* Remove bottom margin for groups within checklist items */
+        }
+
+        .btn-add-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 1.5rem;
+            border: none;
+        }
+
+        .btn-add-item:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+
+        .btn-remove-item {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+            width: fit-content;
+            justify-self: end; /* Align to the end of its grid column */
+            white-space: nowrap;
+        }
+
+        .btn-remove-item:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+
+        @media (max-width: 768px) {
+            .checklist-item {
+                grid-template-columns: 1fr;
+            }
+            .btn-remove-item {
+                width: 100%;
+                justify-self: stretch;
+            }
+        }
+
+        /* Plan List Section */
+        .plan-list-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 3rem;
+        }
+        .plan-list-item {
+            display: flex;
+            flex-direction: column;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .plan-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.5rem 1rem;
+            flex-grow: 1;
+        }
+        .plan-details span {
+            font-weight: 500;
+            color: #475569;
+        }
+        .plan-details strong {
+            color: #1e293b;
+        }
+        .plan-details .text-green-700 {
+            font-weight: 600;
+        }
+        
+        .btn-integrate-api {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #22c55e; /* green-500 */
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 1rem;
+            border: none;
+        }
+
+        .btn-integrate-api:hover {
+            background-color: #16a34a; /* green-600 */
+        }
+
+        /* Modal Specific Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001; /* Above other elements */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 800px; /* Adjust max width for content */
+            max-height: 90vh; /* Limit height to prevent overflow */
+            overflow-y: auto; /* Enable scrolling for long forms */
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.open .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .modal-close-button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #64748b; /* slate-500 */
+            transition: color 0.2s ease;
+        }
+
+        .modal-close-button:hover {
+            color: #334155; /* slate-700 */
+        }
+
+        .modal-checklist-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: #f8fafc;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-checklist-item {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem 1.5rem;
+            align-items: flex-end;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-checklist-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .modal-checklist-item .form-group {
+            margin-bottom: 0;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+
+        .btn-cancel {
+            background-color: #64748b; /* slate-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+
+        .btn-cancel:hover {
+            background-color: #475569; /* slate-700 */
+        }
+
+        .btn-save-modal {
+            background-color: #16a34a; /* green-600 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: none;
+        }
+
+        .btn-save-modal:hover {
+            background-color: #15803d; /* green-700 */
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+<script>document.addEventListener('DOMContentLoaded', function() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dropdown => {
+        const button = dropdown.querySelector('button[aria-haspopup="true"]');
+        const dropdownContent = dropdown.querySelector('.dropdown-content');
+
+        if (button && dropdownContent) {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent document click from immediately closing
+                // Close other open dropdowns
+                dropdowns.forEach(otherDropdown => {
+                    const otherDropdownContent = otherDropdown.querySelector('.dropdown-content');
+                    const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                    if (otherDropdown !== dropdown && otherDropdownContent && !otherDropdownContent.classList.contains('hidden')) {
+                        otherDropdownContent.classList.add('hidden');
+                        otherDropdownContent.classList.remove('animate-fade-in-down');
+                        if (otherButton) {
+                            otherButton.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                });
+
+                // Toggle current dropdown
+                dropdownContent.classList.toggle('hidden');
+                dropdownContent.classList.toggle('animate-fade-in-down');
+                button.setAttribute('aria-expanded', dropdownContent.classList.contains('hidden') ? 'false' : 'true');
+
+                // Close any open submenus within this dropdown when its main menu is toggled
+                const openSubmenus = dropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                openSubmenus.forEach(submenu => {
+                    submenu.classList.add('hidden');
+                    submenu.classList.remove('animate-fade-in-right');
+                    const submenuTrigger = submenu.previousElementSibling;
+                    if (submenuTrigger && submenuTrigger.hasAttribute('aria-expanded')) {
+                        submenuTrigger.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Prevent clicks inside the dropdown from closing it
+            dropdownContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+        dropdowns.forEach(dropdown => {
+            const dropdownContent = dropdown.querySelector('.dropdown-content');
+            const button = dropdown.querySelector('button[aria-haspopup="true"]');
+            // Check if the click was outside the dropdown button and content
+            if (dropdownContent && button && !dropdown.contains(event.target)) {
+                dropdownContent.classList.add('hidden');
+                dropdownContent.classList.remove('animate-fade-in-down');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+
+    // Submenu logic
+    const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+    submenuTriggers.forEach(trigger => {
+        const submenuContent = trigger.nextElementSibling; // The submenu content
+        if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+            trigger.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent parent dropdown from closing
+
+                // Close other open submenus within the same parent dropdown
+                const parentDropdownContent = trigger.closest('.dropdown-content');
+                if (parentDropdownContent) {
+                    const otherSubmenus = parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                    otherSubmenus.forEach(otherSubmenu => {
+                        const otherTrigger = otherSubmenu.previousElementSibling;
+                        if (otherSubmenu !== submenuContent && otherTrigger) {
+                            otherSubmenu.classList.add('hidden');
+                            otherSubmenu.classList.remove('animate-fade-in-right');
+                            otherTrigger.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+                }
+
+                // Toggle current submenu
+                submenuContent.classList.toggle('hidden');
+                submenuContent.classList.toggle('animate-fade-in-right');
+                trigger.setAttribute('aria-expanded', submenuContent.classList.contains('hidden') ? 'false' : 'true');
+            });
+
+            // Prevent clicks inside submenu from closing it
+            submenuContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+    });
+
+    // Alert Bell Button Logic
+    const alertBellButton = document.getElementById('alertBellButton');
+    const alertDropdown = document.getElementById('alertDropdown');
+    if (alertBellButton && alertDropdown) {
+        alertBellButton.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevents this click from bubbling up to document
+            alertDropdown.classList.toggle('hidden');
+            alertDropdown.classList.toggle('animate-fade-in-down');
+            alertBellButton.setAttribute('aria-expanded', alertDropdown.classList.contains('hidden') ? 'false' : 'true');
+        });
+
+        alertDropdown.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevents clicks *inside* the dropdown from closing it
+        });
+    }
+});
+
+function logout() {
+    alert('Você foi desconectado.'); // Placeholder for logout logic
+    // window.location.href = 'login.html'; // Redirect to login page
+}</script>
+   
+    <main class="max-w-4xl mx-auto my-12 px-4 md:px-6">
+        <h1 class="font-extrabold text-5xl mb-10 text-center text-green-800 tracking-wide select-none">Cadastro de Tipo de Veículo</h1>
+        
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg mb-12" aria-label="Formulário de Cadastro de Tipo de Veículo">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Adicionar Novo Tipo de Veículo</h2>
+            <form id="tipoVeiculoForm" class="grid grid-cols-1 gap-4">
+                <div>
+                    <label for="nomeTipoVeiculo" class="block font-semibold mb-2 text-gray-700">Nome do Tipo de Veículo:</label>
+                    <input type="text" id="nomeTipoVeiculo" placeholder="Ex: Carro, Moto, Caminhão" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-green-800 text-white font-bold text-lg py-3 px-8 rounded-lg hover:bg-green-700 transition-colors duration-300 shadow-md">
+                        Cadastrar Tipo de Veículo
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg" aria-label="Tabela de Tipos de Veículos Cadastrados">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Tipos de Veículos Cadastrados</h2>
+            <div class="overflow-x-auto rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Tipo de Veículo</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="tiposVeiculoTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="userFeedback" class="hidden"></div>
+
+        <div id="editTipoVeiculoModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="editTipoVeiculoModalTitle">
+                <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                    <h3 id="editTipoVeiculoModalTitle" class="text-2xl font-bold text-green-900">Editar Tipo de Veículo</h3>
+                    <button onclick="closeEditTipoVeiculoModal()" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full" aria-label="Fechar modal">
+                        <i class="ph ph-x-circle text-3xl"></i>
+                    </button>
+                </div>
+                <div class="overflow-y-auto p-8">
+                    <form id="editTipoVeiculoForm" class="flex flex-col gap-4">
+                        <div>
+                            <label for="edit-nomeTipoVeiculo" class="block font-semibold mb-2">Nome do Tipo de Veículo:</label>
+                            <input type="text" id="edit-nomeTipoVeiculo" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                        </div>
+                    </form>
+                </div>
+                <div class="flex justify-end items-center gap-4 mt-8 pt-5 border-t border-gray-200 px-8 pb-8">
+                    <button type="button" onclick="closeEditTipoVeiculoModal()" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button type="submit" form="editTipoVeiculoForm" class="bg-green-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirmModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
+                <h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mb-4">Confirmar Ação</h3>
+                <p id="confirmModalMessage" class="text-gray-600 mb-6">Você tem certeza?</p>
+                <div class="flex justify-end gap-4">
+                    <button id="confirmModalNo" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg">Não</button>
+                    <button id="confirmModalYes" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Sim, Excluir</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- SEGURANÇA DE LOGIN ---
+        if (localStorage.getItem('logado') !== 'true') {
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, bypassing login redirect.");
+                localStorage.setItem('logado', 'true');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('logado');
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, logout simulated.");
+            }
+        }
+
+        // --- FUNCIONALIDADE DE DROPDOWN MENUS ---
+        const allDropdownContents = document.querySelectorAll('.dropdown-content');
+
+        function toggleDropdown(id, event) {
+            event.stopPropagation(); 
+            const dropdownContent = document.getElementById(id);
+            if (!dropdownContent) return;
+
+            const currentButton = event.currentTarget;
+            const caretIcon = currentButton.querySelector('.caret-icon');
+
+            allDropdownContents.forEach(openDropdown => {
+                if (openDropdown !== dropdownContent && !dropdownContent.contains(openDropdown) && !openDropdown.contains(dropdownContent)) {
+                    openDropdown.classList.remove('active');
+                    const associatedCaret = openDropdown.previousElementSibling ? openDropdown.previousElementSibling.querySelector('.caret-icon') : null;
+                    if (associatedCaret) {
+                        if (associatedCaret.classList.contains('ph-caret-down') || associatedCaret.classList.contains('ph-caret-right')) {
+                            associatedCaret.classList.remove('rotate');
+                        }
+                    }
+                }
+            });
+
+            dropdownContent.classList.toggle('active');
+            if (caretIcon) {
+                if (caretIcon.classList.contains('ph-caret-down') || caretIcon.classList.contains('ph-caret-right')) {
+                    caretIcon.classList.toggle('rotate');
+                }
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            allDropdownContents.forEach(dropdownContent => {
+                const parentDropdown = dropdownContent.closest('.dropdown');
+                if (parentDropdown && !parentDropdown.contains(event.target) && dropdownContent.classList.contains('active')) {
+                    dropdownContent.classList.remove('active');
+                    const associatedCaret = parentDropdown.querySelector('.caret-icon'); 
+                    if (associatedCaret) {
+                        associatedCaret.classList.remove('rotate');
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('header .dropdown > button.menu-link').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                if (contentId) {
+                    button.addEventListener('click', (event) => toggleDropdown(contentId, event));
+                }
+            });
+
+            document.querySelectorAll('.dropdown-item-nested-trigger').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                    if (contentId) {
+                    button.addEventListener('click', (event) => {
+                        event.stopPropagation(); 
+                        const nestedContent = document.getElementById(contentId);
+                        if (nestedContent) {
+                            const parentNestedDropdownContent = button.closest('.dropdown-content');
+                            if (parentNestedDropdownContent) {
+                                parentNestedDropdownContent.querySelectorAll('.nested-dropdown-content.active').forEach(openNested => {
+                                    if (openNested !== nestedContent) {
+                                        openNested.classList.remove('active');
+                                        const openNestedCaret = openNested.previousElementSibling ? openNested.previousElementSibling.querySelector('.caret-icon') : null;
+                                        if (openNestedCaret) openNestedCaret.classList.remove('rotate');
+                                    }
+                                });
+                            }
+
+                            nestedContent.classList.toggle('active');
+                            const caret = button.querySelector('.caret-icon');
+                            if (caret) {
+                                caret.classList.toggle('rotate');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // --- Ativar o menu da página atual e a lógica "arrumada" do cabeçalho ---
+            const currentPath = window.location.pathname.split('/').pop();
+            
+            document.querySelectorAll('.menu-link, .dropdown-item').forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (linkHref && linkHref.includes(currentPath) && currentPath !== '') {
+                    link.classList.add('active-menu');
+                }
+            });
+
+            // Handle specific menu activation for 'Tipo de Veículo'
+            if (currentPath === 'cadastro_tipo_veiculo.html') {
+                const tipoVeiculoLink = document.querySelector('a[href="cadastro_tipo_veiculo.html"]');
+                if (tipoVeiculoLink) {
+                    tipoVeiculoLink.classList.add('active-menu');
+                }
+            }
+        });
+
+        // --- FUNCIONALIDADE DE MENU MOBILE ---
+        function toggleMobileMenu() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            nav.classList.toggle('active');
+            if (nav.classList.contains('active')) {
+                menuIcon.innerHTML = '<i class="ph ph-x"></i>'; 
+            } else {
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>'; 
+            }
+            // Quando o menu mobile fecha, garantir que todos os dropdowns internos fechem
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        }
+        
+        window.addEventListener('resize', function() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            if (window.innerWidth > 768 && nav.classList.contains('active')) {
+                nav.classList.remove('active');
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>';
+            }
+            // Quando a tela é redimensionada para desktop, garantir que todos os dropdowns internos fechem
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        });
+
+        // --- LÓGICA DO FORMULÁRIO DE CADASTRO DE TIPO DE VEÍCULO ---
+        const tipoVeiculoForm = document.getElementById('tipoVeiculoForm');
+        const tiposVeiculoTableBody = document.getElementById('tiposVeiculoTableBody');
+        const userFeedback = document.getElementById('userFeedback');
+
+        // Elements do modal de edição
+        const editTipoVeiculoModal = document.getElementById('editTipoVeiculoModal');
+        const editTipoVeiculoForm = document.getElementById('editTipoVeiculoForm');
+        
+        let tiposVeiculo = JSON.parse(localStorage.getItem('tiposVeiculo')) || [];
+        let nextTipoVeiculoId = JSON.parse(localStorage.getItem('nextTipoVeiculoId')) || 1;
+
+        let currentEditingTipoVeiculoId = null; // Para guardar o ID do tipo de veículo sendo editado
+
+        // Display user feedback messages (success/error banners)
+        function showFeedback(message, type = 'success') {
+            userFeedback.textContent = message;
+            userFeedback.className = `p-4 mt-4 rounded-lg text-white font-bold text-center ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            userFeedback.classList.remove('hidden');
+            setTimeout(() => {
+                userFeedback.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Render tipos de veículo in the table
+        function renderTiposVeiculo() {
+            tiposVeiculoTableBody.innerHTML = ''; // Clear table before re-rendering
+            if (tiposVeiculo.length === 0) {
+                tiposVeiculoTableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Nenhum tipo de veículo cadastrado.</td></tr>`;
+                return;
+            }
+
+            tiposVeiculo.forEach(tipo => {
+                const row = tiposVeiculoTableBody.insertRow();
+                row.className = 'hover:bg-gray-100 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">${tipo.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${tipo.nome}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="openEditTipoVeiculoModal(${tipo.id})" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Editar">
+                            <i class="ph ph-pencil-simple text-lg"></i>
+                        </button>
+                        <button onclick="confirmDeleteTipoVeiculo(${tipo.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
+                    </td>
+                `;
+            });
+
+            localStorage.setItem('tiposVeiculo', JSON.stringify(tiposVeiculo));
+        }
+
+        // Add new tipo de veículo
+        tipoVeiculoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const nomeTipoVeiculoInput = document.getElementById('nomeTipoVeiculo');
+            const nome = nomeTipoVeiculoInput.value.trim();
+
+            if (nome === '') {
+                showFeedback('O nome do tipo de veículo não pode ser vazio.', 'error');
+                return;
+            }
+
+            // Check for duplicate (case-insensitive)
+            const isDuplicate = tiposVeiculo.some(tipo => tipo.nome.toLowerCase() === nome.toLowerCase());
+            if (isDuplicate) {
+                showFeedback('Já existe um tipo de veículo com este nome!', 'error');
+                return;
+            }
+
+            const newTipoVeiculo = {
+                id: nextTipoVeiculoId++,
+                nome: nome
+            };
+
+            tiposVeiculo.push(newTipoVeiculo);
+            localStorage.setItem('nextTipoVeiculoId', nextTipoVeiculoId); // Update next ID
+            tipoVeiculoForm.reset();
+            renderTiposVeiculo(); // Re-render table and update localStorage
+            showFeedback('Tipo de veículo cadastrado com sucesso!', 'success');
+        });
+
+        // --- EDIT MODAL FUNCTIONS ---
+        function openEditTipoVeiculoModal(id) {
+            currentEditingTipoVeiculoId = id;
+            const tipoVeiculoToEdit = tiposVeiculo.find(t => t.id === id);
+
+            if (tipoVeiculoToEdit) {
+                document.getElementById('edit-nomeTipoVeiculo').value = tipoVeiculoToEdit.nome;
+                editTipoVeiculoModal.classList.remove('hidden');
+                editTipoVeiculoModal.classList.add('flex');
+            }
+        }
+
+        function closeEditTipoVeiculoModal() {
+            editTipoVeiculoModal.classList.add('hidden');
+            editTipoVeiculoModal.classList.remove('flex');
+            currentEditingTipoVeiculoId = null; // Clear editing ID
+        }
+
+        editTipoVeiculoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const updatedNome = document.getElementById('edit-nomeTipoVeiculo').value.trim();
+
+            if (updatedNome === '') {
+                showFeedback('O nome do tipo de veículo não pode ser vazio.', 'error');
+                return;
+            }
+
+            // Check for duplicate during edit (excluding the current item being edited)
+            const isDuplicate = tiposVeiculo.some(tipo => 
+                tipo.id !== currentEditingTipoVeiculoId && tipo.nome.toLowerCase() === updatedNome.toLowerCase()
+            );
+            if (isDuplicate) {
+                showFeedback('Já existe outro tipo de veículo com este nome!', 'error');
+                return;
+            }
+
+            tiposVeiculo = tiposVeiculo.map(tipo => 
+                tipo.id === currentEditingTipoVeiculoId ? { ...tipo, nome: updatedNome } : tipo
+            );
+
+            renderTiposVeiculo();
+            closeEditTipoVeiculoModal();
+            showFeedback('Tipo de veículo atualizado com sucesso!', 'success');
+        });
+
+        // --- CONFIRMATION MODAL FUNCTIONS (for delete) ---
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmModalTitle = document.getElementById('confirmModalTitle');
+        const confirmModalMessage = document.getElementById('confirmModalMessage');
+        const confirmModalNo = document.getElementById('confirmModalNo');
+        const confirmModalYes = document.getElementById('confirmModalYes');
+        let confirmAction = null; // Stores the function to call on 'Yes'
+
+        function showConfirmModal(title, message, onConfirm) {
+            confirmModalTitle.textContent = title;
+            confirmModalMessage.textContent = message;
+            confirmAction = onConfirm; // Set the action to be performed
+            confirmModal.classList.remove('hidden');
+            confirmModal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+            confirmAction = null; // Clear the action
+        }
+
+        confirmModalNo.addEventListener('click', closeConfirmModal);
+        confirmModalYes.addEventListener('click', () => {
+            if (confirmAction) {
+                confirmAction(); // Execute the stored action
+            }
+            closeConfirmModal();
+        });
+
+        // Delete tipo de veículo
+        function confirmDeleteTipoVeiculo(id) {
+            const tipoVeiculoToDelete = tiposVeiculo.find(tipo => tipo.id === id);
+            if (tipoVeiculoToDelete) {
+                showConfirmModal(
+                    'Confirmar Exclusão',
+                    `Tem certeza que deseja excluir o tipo de veículo "${tipoVeiculoToDelete.nome}" (ID: ${id})?`,
+                    () => deleteTipoVeiculo(id)
+                );
+            }
+        }
+
+        function deleteTipoVeiculo(id) {
+            const initialLength = tiposVeiculo.length;
+            tiposVeiculo = tiposVeiculo.filter(tipo => tipo.id !== id);
+            
+            if (tiposVeiculo.length < initialLength) {
+                renderTiposVeiculo();
+                showFeedback('Tipo de veículo excluído com sucesso!', 'success');
+            } else {
+                showFeedback('Erro ao excluir tipo de veículo.', 'error');
+            }
+        }
+
+        // Initial render on page load
+        document.addEventListener('DOMContentLoaded', renderTiposVeiculo);
+    </script>
+</body>
+</html>

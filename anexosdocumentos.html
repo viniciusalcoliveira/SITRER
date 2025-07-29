@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cadastro de Documentos - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top;
+        }
+
+        /* Custom animation for submenu fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right {
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left;
+        }
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Styles for dropdown content (main menus) */
+        .dropdown-content {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+        }
+
+        /* Styles for submenu content (nested menus) */
+        .submenu-content {
+            position: absolute;
+            top: 0;
+            left: 100%; /* Opens to the right */
+            min-width: 220px;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 10000; /* Ensure it's above other elements */
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e2e8f0; /* Small border for visual separation */
+        }
+
+        /* Adjust caret rotation for main dropdowns */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Rotates up when open */
+        }
+
+        /* Adjust caret rotation for submenus */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open (if opening right) */
+        }
+
+        /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Main dropdowns revert to full width and relative positioning for mobile */
+            .dropdown-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 1rem; /* Indent dropdown items */
+            }
+            /* Submenus also revert to full width and static positioning for mobile */
+            .submenu-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-left: none; /* Remove left border */
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 2rem; /* Further indent nested items */
+            }
+
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset rotation for mobile */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(180deg) !important; /* Still rotate down for consistency in mobile dropdowns */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i>
+            </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden absolute top-full left-0 bg-white rounded-xl shadow-xl min-w-[220px] z-[9999] flex-col">
+
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_combustivel.html" class="dropdown-item">Cadastro de Combustível</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="anexosdocumentos.html" class="dropdown-item">Anexar Documento</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Cadastro de Compartimentos</a>
+                        <a href="cadastro_acoes.html" class="dropdown-item">Cadastro de Ações</a>
+                    </div>
+                </div>
+                <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro de Técnicos</a>
+                <a href="fornecedor.html" class="dropdown-item">Cadastro de Fornecedores</a>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Cadastro de Periodicidade</a>
+                <a href="oficinas.html" class="dropdown-item">Cadastro de Oficina</a>
+                <a href="controlehodometrohorimetro.html" class="dropdown-item">Controle de Hodômetro/Horímetro</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i>
+            </button>
+            <div id="menu-plano" class="dropdown-content hidden absolute top-full left-0 bg-white rounded-xl shadow-xl min-w-[220px] flex-col z-[9999]">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i>
+            </button>
+            <div id="menu-os" class="dropdown-content hidden absolute top-full left-0 bg-white rounded-xl shadow-xl min-w-[220px] flex-col z-[9999]">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i>
+            </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden absolute top-full left-0 bg-white rounded-xl shadow-xl min-w-[220px] flex-col z-[9999]">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                const dropdownContent = dropdown.querySelector('.dropdown-content');
+
+                if (button && dropdownContent) {
+                    button.addEventListener('click', function(event) {
+                        event.stopPropagation(); // Prevent document click from immediately closing
+                        // Close other open dropdowns
+                        dropdowns.forEach(otherDropdown => {
+                            const otherDropdownContent = otherDropdown.querySelector('.dropdown-content');
+                            const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                            if (otherDropdown !== dropdown && otherDropdownContent && !otherDropdownContent.classList.contains('hidden')) {
+                                otherDropdownContent.classList.add('hidden');
+                                otherDropdownContent.classList.remove('animate-fade-in-down');
+                                if (otherButton) {
+                                    otherButton.setAttribute('aria-expanded', 'false');
+                                }
+                            }
+                        });
+
+                        // Toggle current dropdown
+                        dropdownContent.classList.toggle('hidden');
+                        dropdownContent.classList.toggle('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', dropdownContent.classList.contains('hidden') ? 'false' : 'true');
+
+                        // Close any open submenus within this dropdown when its main menu is toggled
+                        const openSubmenus = dropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                        openSubmenus.forEach(submenu => {
+                            submenu.classList.add('hidden');
+                            submenu.classList.remove('animate-fade-in-right');
+                            const submenuTrigger = submenu.previousElementSibling;
+                            if (submenuTrigger && submenuTrigger.hasAttribute('aria-expanded')) {
+                                submenuTrigger.setAttribute('aria-expanded', 'false');
+                            }
+                        });
+                    });
+
+                    // Prevent clicks inside the dropdown from closing it
+                    dropdownContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                dropdowns.forEach(dropdown => {
+                    const dropdownContent = dropdown.querySelector('.dropdown-content');
+                    const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                    // Check if the click was outside the dropdown button and content
+                    if (dropdownContent && button && !dropdown.contains(event.target)) {
+                        dropdownContent.classList.add('hidden');
+                        dropdownContent.classList.remove('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Submenu logic
+            const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+            submenuTriggers.forEach(trigger => {
+                const submenuContent = trigger.nextElementSibling; // The submenu content
+                if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+                    trigger.addEventListener('click', function(event) {
+                        event.stopPropagation(); // Prevent parent dropdown from closing
+
+                        // Close other open submenus within the same parent dropdown
+                        const parentDropdownContent = trigger.closest('.dropdown-content');
+                        if (parentDropdownContent) {
+                            const otherSubmenus = parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                            otherSubmenus.forEach(otherSubmenu => {
+                                const otherTrigger = otherSubmenu.previousElementSibling;
+                                if (otherSubmenu !== submenuContent && otherTrigger) {
+                                    otherSubmenu.classList.add('hidden');
+                                    otherSubmenu.classList.remove('animate-fade-in-right');
+                                    otherTrigger.setAttribute('aria-expanded', 'false');
+                                }
+                            });
+                        }
+
+                        // Toggle current submenu
+                        submenuContent.classList.toggle('hidden');
+                        submenuContent.classList.toggle('animate-fade-in-right');
+                        trigger.setAttribute('aria-expanded', submenuContent.classList.contains('hidden') ? 'false' : 'true');
+                    });
+
+                    // Prevent clicks inside submenu from closing it
+                    submenuContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            // Alert Bell Button Logic
+            const alertBellButton = document.getElementById('alertBellButton');
+            const alertDropdown = document.getElementById('alertDropdown');
+            if (alertBellButton && alertDropdown) {
+                alertBellButton.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevents this click from bubbling up to document
+                    alertDropdown.classList.toggle('hidden');
+                    alertDropdown.classList.toggle('animate-fade-in-down');
+                    alertBellButton.setAttribute('aria-expanded', alertDropdown.classList.contains('hidden') ? 'false' : 'true');
+                });
+
+                alertDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevents clicks *inside* the dropdown from closing it
+                });
+            }
+        });
+
+        function logout() {
+            alert('Você foi desconectado.'); // Placeholder for logout logic
+            // window.location.href = 'login.html'; // Redirect to login page
+        }
+    </script>
+    
+    <main class="max-w-4xl mx-auto my-12 px-4 md:px-6">
+        <h1 class="font-extrabold text-5xl mb-10 text-center text-green-800 tracking-wide select-none">Cadastro de Documentos</h1>
+        
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg mb-12" aria-label="Formulário de Cadastro de Documento">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Adicionar Novo Documento</h2>
+            <form id="documentoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="nomeDocumento" class="block font-semibold mb-2 text-gray-700">Nome do Documento:</label>
+                    <input type="text" id="nomeDocumento" placeholder="Ex: CRLV, CNH, Licença Operacional" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div>
+                    <label for="tipoDocumento" class="block font-semibold mb-2 text-gray-700">Tipo de Documento:</label>
+                    <select id="tipoDocumento" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                        <option value="">Selecione o Tipo</option>
+                        <option value="Veiculo">Veículo</option>
+                        <option value="Motorista">Motorista</option>
+                        <option value="Operacional">Operacional</option>
+                        <option value="Seguro">Seguro</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="descricaoDocumento" class="block font-semibold mb-2 text-gray-700">Descrição (Opcional):</label>
+                    <input type="text" id="descricaoDocumento" placeholder="Breve descrição do documento" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                </div>
+                <div>
+                    <label for="anexoDocumento" class="block font-semibold mb-2 text-gray-700">Anexar Documento (Opcional):</label>
+                    <input type="file" id="anexoDocumento" class="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    <p class="text-sm text-gray-500 mt-1">Formatos aceitos: PDF, DOC, DOCX, JPG, JPEG, PNG (até 2MB).</p>
+                </div>
+                
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="bg-green-800 text-white font-bold text-lg py-3 px-8 rounded-lg hover:bg-green-700 transition-colors duration-300 shadow-md">
+                        Cadastrar Documento
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg" aria-label="Tabela de Documentos Cadastrados">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Documentos Cadastrados</h2>
+            <div class="overflow-x-auto rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anexo</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="documentosTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="userFeedback" class="hidden"></div>
+
+        <div id="editDocumentoModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="editDocumentoModalTitle">
+                <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                    <h3 id="editDocumentoModalTitle" class="text-2xl font-bold text-green-900">Editar Documento</h3>
+                    <button onclick="closeEditDocumentoModal()" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full" aria-label="Fechar modal">
+                        <i class="ph ph-x-circle text-3xl"></i>
+                    </button>
+                </div>
+                <div class="overflow-y-auto p-8">
+                    <form id="editDocumentoForm" class="flex flex-col gap-4">
+                        <div>
+                            <label for="edit-nomeDocumento" class="block font-semibold mb-2">Nome do Documento:</label>
+                            <input type="text" id="edit-nomeDocumento" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="edit-tipoDocumento" class="block font-semibold mb-2">Tipo de Documento:</label>
+                            <select id="edit-tipoDocumento" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                                <option value="">Selecione o Tipo</option>
+                                <option value="Veiculo">Veículo</option>
+                                <option value="Motorista">Motorista</option>
+                                <option value="Operacional">Operacional</option>
+                                <option value="Seguro">Seguro</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="edit-descricaoDocumento" class="block font-semibold mb-2">Descrição (Opcional):</label>
+                            <input type="text" id="edit-descricaoDocumento" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" />
+                        </div>
+                        <div>
+                            <label for="edit-anexoDocumento" class="block font-semibold mb-2">Anexar Novo Documento (Opcional):</label>
+                            <input type="file" id="edit-anexoDocumento" class="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <p class="text-sm text-gray-500 mt-1">Formatos aceitos: PDF, DOC, DOCX, JPG, JPEG, PNG (até 2MB).</p>
+                            <div id="currentAnexoContainer" class="mt-2 text-gray-600">
+                                Anexo Atual: <span id="currentAnexoName">Nenhum</span> 
+                                <button id="viewCurrentAnexo" class="text-blue-600 hover:underline hidden ml-2">Visualizar</button>
+                                <button id="removeCurrentAnexo" class="text-red-600 hover:underline hidden ml-2" title="Remover anexo atual">Remover</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="flex justify-end items-center gap-4 mt-8 pt-5 border-t border-gray-200 px-8 pb-8">
+                    <button type="button" onclick="closeEditDocumentoModal()" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button type="submit" form="editDocumentoForm" class="bg-green-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirmModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
+                <h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mb-4">Confirmar Ação</h3>
+                <p id="confirmModalMessage" class="text-gray-600 mb-6">Você tem certeza?</p>
+                <div class="flex justify-end gap-4">
+                    <button id="confirmModalNo" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg">Não</button>
+                    <button id="confirmModalYes" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Sim, Excluir</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- SEGURANÇA DE LOGIN ---
+        if (localStorage.getItem('logado') !== 'true') {
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, bypassing login redirect.");
+                localStorage.setItem('logado', 'true');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('logado');
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, logout simulated.");
+            }
+        }
+
+        // --- FUNCIONALIDADE DE DROPDOWN MENUS ---
+        const allDropdownContents = document.querySelectorAll('.dropdown-content');
+
+        function toggleDropdown(id, event) {
+            event.stopPropagation(); 
+            const dropdownContent = document.getElementById(id);
+            if (!dropdownContent) return;
+
+            const currentButton = event.currentTarget;
+            const caretIcon = currentButton.querySelector('.caret-icon');
+
+            allDropdownContents.forEach(openDropdown => {
+                if (openDropdown !== dropdownContent && !dropdownContent.contains(openDropdown) && !openDropdown.contains(dropdownContent)) {
+                    openDropdown.classList.remove('active');
+                    const associatedCaret = openDropdown.previousElementSibling ? openDropdown.previousElementSibling.querySelector('.caret-icon') : null;
+                    if (associatedCaret) {
+                        if (associatedCaret.classList.contains('ph-caret-down') || associatedCaret.classList.contains('ph-caret-right')) {
+                            associatedCaret.classList.remove('rotate');
+                        }
+                    }
+                }
+            });
+
+            dropdownContent.classList.toggle('active');
+            if (caretIcon) {
+                if (caretIcon.classList.contains('ph-caret-down') || caretIcon.classList.contains('ph-caret-right')) {
+                    caretIcon.classList.toggle('rotate');
+                }
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            allDropdownContents.forEach(dropdownContent => {
+                const parentDropdown = dropdownContent.closest('.dropdown');
+                if (parentDropdown && !parentDropdown.contains(event.target) && dropdownContent.classList.contains('active')) {
+                    dropdownContent.classList.remove('active');
+                    const associatedCaret = parentDropdown.querySelector('.caret-icon'); 
+                    if (associatedCaret) {
+                        associatedCaret.classList.remove('rotate');
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('header .dropdown > button.menu-link').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                if (contentId) {
+                    button.addEventListener('click', (event) => toggleDropdown(contentId, event));
+                }
+            });
+
+            document.querySelectorAll('.dropdown-item-nested-trigger').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                    if (contentId) {
+                        button.addEventListener('click', (event) => {
+                            event.stopPropagation(); 
+                            const nestedContent = document.getElementById(contentId);
+                            if (nestedContent) {
+                                const parentNestedDropdownContent = button.closest('.dropdown-content');
+                                if (parentNestedDropdownContent) {
+                                    parentNestedDropdownContent.querySelectorAll('.nested-dropdown-content.active').forEach(openNested => {
+                                        if (openNested !== nestedContent) {
+                                            openNested.classList.remove('active');
+                                            const openNestedCaret = openNested.previousElementSibling ? openNested.previousElementSibling.querySelector('.caret-icon') : null;
+                                            if (openNestedCaret) openNestedCaret.classList.remove('rotate');
+                                        }
+                                    });
+                                }
+
+                                nestedContent.classList.toggle('active');
+                                const caret = button.querySelector('.caret-icon');
+                                if (caret) {
+                                    caret.classList.toggle('rotate');
+                                }
+                            }
+                        });
+                    }
+            });
+
+            // --- Ativar o menu da página atual e a lógica "arrumada" do cabeçalho ---
+            const currentPath = window.location.pathname.split('/').pop();
+            
+            document.querySelectorAll('.menu-link, .dropdown-item').forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (linkHref && linkHref.includes(currentPath) && currentPath !== '') {
+                    link.classList.add('active-menu');
+                }
+            });
+
+            // Handle specific menu activation for 'Documentos' with "arrumada" logic
+            if (currentPath === 'cadastro_documentos.html') {
+                const documentosLink = document.querySelector('a[href="cadastro_documentos.html"]');
+                if (documentosLink) {
+                    documentosLink.classList.add('active-menu'); 
+
+                    // NÃO abre o dropdown pai 'Veículos' nem o avô 'Configurações' automaticamente.
+                    // Apenas o link 'Cadastro de Documentos' fica amarelo.
+                    // Para abrir os menus, o usuário precisa clicar.
+                }
+            }
+            // Lembre-se de aplicar essa mesma lógica (comentar as linhas de 'classList.add('active')' e 'classList.add('rotate')'
+            // dos pais) em todos os outros arquivos HTML que você quer que não abram o menu "Configurações" ou seus submenus.
+        });
+
+        // --- FUNCIONALIDADE DE MENU MOBILE ---
+        function toggleMobileMenu() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            nav.classList.toggle('active');
+            if (nav.classList.contains('active')) {
+                menuIcon.innerHTML = '<i class="ph ph-x"></i>'; 
+            } else {
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>'; 
+            }
+            // Quando o menu mobile fecha, garantir que todos os dropdowns internos fechem
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        }
+        
+        window.addEventListener('resize', function() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            if (window.innerWidth > 768 && nav.classList.contains('active')) {
+                nav.classList.remove('active');
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>';
+            }
+            // Quando a tela é redimensionada para desktop, garantir que todos os dropdowns internos fechem
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        });
+
+        // --- DOCUMENT MANAGEMENT LOGIC ---
+        const documentoForm = document.getElementById('documentoForm');
+        const documentosTableBody = document.getElementById('documentosTableBody');
+        const editDocumentoModal = document.getElementById('editDocumentoModal');
+        const editDocumentoForm = document.getElementById('editDocumentoForm');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmModalYes = document.getElementById('confirmModalYes');
+        const confirmModalNo = document.getElementById('confirmModalNo');
+        const userFeedback = document.getElementById('userFeedback');
+
+        let documentos = JSON.parse(localStorage.getItem('documentos')) || [];
+        let editingDocumentId = null;
+        let documentToDeleteId = null;
+
+        function renderDocumentos() {
+            documentosTableBody.innerHTML = '';
+            if (documentos.length === 0) {
+                documentosTableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Nenhum documento cadastrado.</td></tr>';
+                return;
+            }
+            documentos.forEach(doc => {
+                const row = documentosTableBody.insertRow();
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${doc.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${doc.nomeDocumento}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${doc.tipoDocumento}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${doc.descricaoDocumento || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        ${doc.anexo ? `<a href="${doc.anexo}" target="_blank" class="text-blue-600 hover:underline">Visualizar</a>` : 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="openEditDocumentoModal(${doc.id})" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Editar">
+                            <i class="ph ph-pencil-simple text-xl"></i>
+                        </button>
+                        <button onclick="showConfirmModal(${doc.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                            <i class="ph ph-trash text-xl"></i>
+                        </button>
+                    </td>
+                `;
+            });
+        }
+
+        function saveDocumentos() {
+            localStorage.setItem('documentos', JSON.stringify(documentos));
+        }
+
+        function generateUniqueId() {
+            return documentos.length > 0 ? Math.max(...documentos.map(d => d.id)) + 1 : 1;
+        }
+
+        documentoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const nomeDocumento = document.getElementById('nomeDocumento').value;
+            const tipoDocumento = document.getElementById('tipoDocumento').value;
+            const descricaoDocumento = document.getElementById('descricaoDocumento').value;
+            const anexoDocumentoInput = document.getElementById('anexoDocumento');
+            let anexoBase64 = null;
+
+            const file = anexoDocumentoInput.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                    showFeedback('O tamanho do arquivo excede o limite de 2MB.', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    anexoBase64 = e.target.result;
+                    const newDocumento = {
+                        id: generateUniqueId(),
+                        nomeDocumento,
+                        tipoDocumento,
+                        descricaoDocumento,
+                        anexo: anexoBase64,
+                        anexoName: file.name
+                    };
+                    documentos.push(newDocumento);
+                    saveDocumentos();
+                    renderDocumentos();
+                    documentoForm.reset();
+                    showFeedback('Documento cadastrado com sucesso!', 'success');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const newDocumento = {
+                    id: generateUniqueId(),
+                    nomeDocumento,
+                    tipoDocumento,
+                    descricaoDocumento,
+                    anexo: null,
+                    anexoName: null
+                };
+                documentos.push(newDocumento);
+                saveDocumentos();
+                renderDocumentos();
+                documentoForm.reset();
+                showFeedback('Documento cadastrado com sucesso!', 'success');
+            }
+        });
+
+        function openEditDocumentoModal(id) {
+            editingDocumentId = id;
+            const doc = documentos.find(d => d.id === id);
+            if (doc) {
+                document.getElementById('edit-nomeDocumento').value = doc.nomeDocumento;
+                document.getElementById('edit-tipoDocumento').value = doc.tipoDocumento;
+                document.getElementById('edit-descricaoDocumento').value = doc.descricaoDocumento;
+                document.getElementById('edit-anexoDocumento').value = ''; // Clear file input
+
+                const currentAnexoNameSpan = document.getElementById('currentAnexoName');
+                const viewCurrentAnexoBtn = document.getElementById('viewCurrentAnexo');
+                const removeCurrentAnexoBtn = document.getElementById('removeCurrentAnexo');
+
+                if (doc.anexo && doc.anexoName) {
+                    currentAnexoNameSpan.textContent = doc.anexoName;
+                    viewCurrentAnexoBtn.href = doc.anexo;
+                    viewCurrentAnexoBtn.classList.remove('hidden');
+                    removeCurrentAnexoBtn.classList.remove('hidden');
+                } else {
+                    currentAnexoNameSpan.textContent = 'Nenhum';
+                    viewCurrentAnexoBtn.classList.add('hidden');
+                    removeCurrentAnexoBtn.classList.add('hidden');
+                }
+
+                editDocumentoModal.classList.remove('hidden');
+                editDocumentoModal.classList.add('flex');
+            }
+        }
+
+        function closeEditDocumentoModal() {
+            editDocumentoModal.classList.add('hidden');
+            editDocumentoModal.classList.remove('flex');
+            editingDocumentId = null;
+        }
+
+        removeCurrentAnexo.addEventListener('click', function(event) {
+            event.preventDefault();
+            const doc = documentos.find(d => d.id === editingDocumentId);
+            if (doc) {
+                doc.anexo = null;
+                doc.anexoName = null;
+                document.getElementById('currentAnexoName').textContent = 'Nenhum';
+                document.getElementById('viewCurrentAnexo').classList.add('hidden');
+                document.getElementById('removeCurrentAnexo').classList.add('hidden');
+                showFeedback('Anexo removido.', 'info');
+            }
+        });
+
+        editDocumentoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const docIndex = documentos.findIndex(d => d.id === editingDocumentId);
+            if (docIndex !== -1) {
+                const updatedDoc = { ...documentos[docIndex] };
+                updatedDoc.nomeDocumento = document.getElementById('edit-nomeDocumento').value;
+                updatedDoc.tipoDocumento = document.getElementById('edit-tipoDocumento').value;
+                updatedDoc.descricaoDocumento = document.getElementById('edit-descricaoDocumento').value;
+
+                const editAnexoInput = document.getElementById('edit-anexoDocumento');
+                const file = editAnexoInput.files[0];
+
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                        showFeedback('O tamanho do novo arquivo excede o limite de 2MB.', 'error');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        updatedDoc.anexo = e.target.result;
+                        updatedDoc.anexoName = file.name;
+                        documentos[docIndex] = updatedDoc;
+                        saveDocumentos();
+                        renderDocumentos();
+                        closeEditDocumentoModal();
+                        showFeedback('Documento atualizado com sucesso!', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    documentos[docIndex] = updatedDoc;
+                    saveDocumentos();
+                    renderDocumentos();
+                    closeEditDocumentoModal();
+                    showFeedback('Documento atualizado com sucesso!', 'success');
+                }
+            }
+        });
+
+        function showConfirmModal(id) {
+            documentToDeleteId = id;
+            confirmModal.classList.remove('hidden');
+            confirmModal.classList.add('flex');
+            document.getElementById('confirmModalMessage').textContent = 'Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.';
+            confirmModalYes.textContent = 'Sim, Excluir';
+            confirmModalYes.onclick = deleteDocument;
+        }
+
+        function closeConfirmModal() {
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+            documentToDeleteId = null;
+        }
+
+        function deleteDocument() {
+            if (documentToDeleteId !== null) {
+                documentos = documentos.filter(doc => doc.id !== documentToDeleteId);
+                saveDocumentos();
+                renderDocumentos();
+                closeConfirmModal();
+                showFeedback('Documento excluído com sucesso!', 'success');
+            }
+        }
+
+        confirmModalNo.addEventListener('click', closeConfirmModal);
+
+        function showFeedback(message, type) {
+            userFeedback.textContent = message;
+            userFeedback.className = `p-3 rounded-lg text-white font-semibold text-center mt-4 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            userFeedback.classList.remove('hidden');
+            setTimeout(() => {
+                userFeedback.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Initial render on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDocumentos();
+        });
+    </script>
+</body>
+</html>

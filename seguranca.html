@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BFM Frotas - Segurança</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+   <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+             /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { /* Used for main menus now */
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top center;
+        }
+
+        /* Custom animation for dropdown fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right { /* Used for sub-menus now */
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left center;
+        }
+
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Adjust caret rotation for main dropdowns (back to caret-down) */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Points up when open */
+        }
+
+        /* Adjust caret rotation for submenus (still caret-right) */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open */
+        }
+
+        /* Dropdown content positioning for downwards opening (main menus) */
+        .dropdown-content {
+            position: absolute;
+            top: 100%; /* Position directly below the parent button */
+            left: 0;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+        /* Submenu content positioning for side opening (submenus) */
+        .submenu-content {
+            position: absolute;
+            top: 0; /* Align top with parent submenu trigger */
+            left: 100%; /* Position to the right of parent submenu trigger */
+            margin-left: 0.5rem; /* Small gap */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            border-left: 1px solid #e2e8f0; /* Add a subtle left border for visual separation */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+
+         /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Main dropdowns revert to full width and relative positioning for mobile */
+            .dropdown-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 1rem; /* Indent dropdown items */
+            }
+            /* Submenus also revert to full width and static positioning for mobile */
+            .submenu-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-left: none; /* Remove left border */
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 2rem; /* Further indent nested items */
+            }
+
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset rotation for mobile */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(180deg) !important; /* Still rotate down for consistency in mobile dropdowns */
+            }
+        }
+    </style>
+</head>
+<body>
+
+  <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                const dropdownContent = dropdown.querySelector('.dropdown-content');
+
+                if (button && dropdownContent) {
+                    button.addEventListener('click', function(event) {
+                        event.stopPropagation(); // Prevent document click from immediately closing
+                        // Close other open dropdowns
+                        dropdowns.forEach(otherDropdown => {
+                            const otherDropdownContent = otherDropdown.querySelector('.dropdown-content');
+                            const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                            if (otherDropdown !== dropdown && otherDropdownContent && !otherDropdownContent.classList.contains('hidden')) {
+                                otherDropdownContent.classList.add('hidden');
+                                otherDropdownContent.classList.remove('animate-fade-in-down');
+                                if (otherButton) {
+                                    otherButton.setAttribute('aria-expanded', 'false');
+                                }
+                            }
+                        });
+
+                        // Toggle current dropdown
+                        dropdownContent.classList.toggle('hidden');
+                        dropdownContent.classList.toggle('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', dropdownContent.classList.contains('hidden') ? 'false' : 'true');
+
+                        // Close any open submenus within this dropdown when its main menu is toggled
+                        const openSubmenus = dropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                        openSubmenus.forEach(submenu => {
+                            submenu.classList.add('hidden');
+                            submenu.classList.remove('animate-fade-in-right');
+                            const submenuTrigger = submenu.previousElementSibling;
+                            if (submenuTrigger && submenuTrigger.hasAttribute('aria-expanded')) {
+                                submenuTrigger.setAttribute('aria-expanded', 'false');
+                            }
+                        });
+                    });
+
+                    // Prevent clicks inside the dropdown from closing it
+                    dropdownContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                dropdowns.forEach(dropdown => {
+                    const dropdownContent = dropdown.querySelector('.dropdown-content');
+                    const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                    // Check if the click was outside the dropdown button and content
+                    if (dropdownContent && button && !dropdown.contains(event.target)) {
+                        dropdownContent.classList.add('hidden');
+                        dropdownContent.classList.remove('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Submenu logic
+            const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+            submenuTriggers.forEach(trigger => {
+                const submenuContent = trigger.nextElementSibling; // The submenu content
+                if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+                    trigger.addEventListener('click', function(event) {
+                        event.stopPropagation(); // Prevent parent dropdown from closing
+
+                        // Close other open submenus within the same parent dropdown
+                        const parentDropdownContent = trigger.closest('.dropdown-content');
+                        if (parentDropdownContent) {
+                            const otherSubmenus = parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                            otherSubmenus.forEach(otherSubmenu => {
+                                const otherTrigger = otherSubmenu.previousElementSibling;
+                                if (otherSubmenu !== submenuContent && otherTrigger) {
+                                    otherSubmenu.classList.add('hidden');
+                                    otherSubmenu.classList.remove('animate-fade-in-right');
+                                    otherTrigger.setAttribute('aria-expanded', 'false');
+                                }
+                            });
+                        }
+
+                        // Toggle current submenu
+                        submenuContent.classList.toggle('hidden');
+                        submenuContent.classList.toggle('animate-fade-in-right');
+                        trigger.setAttribute('aria-expanded', submenuContent.classList.contains('hidden') ? 'false' : 'true');
+                    });
+
+                    // Prevent clicks inside submenu from closing it
+                    submenuContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            // Alert Bell Button Logic
+            const alertBellButton = document.getElementById('alertBellButton');
+            const alertDropdown = document.getElementById('alertDropdown');
+            if (alertBellButton && alertDropdown) {
+                alertBellButton.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevents this click from bubbling up to document
+                    alertDropdown.classList.toggle('hidden');
+                    alertDropdown.classList.toggle('animate-fade-in-down');
+                    alertBellButton.setAttribute('aria-expanded', alertDropdown.classList.contains('hidden') ? 'false' : 'true');
+                });
+
+                alertDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevents clicks *inside* the dropdown from closing it
+                });
+            }
+        });
+
+        function logout() {
+            alert('Você foi desconectado.'); // Placeholder for logout logic
+            // window.location.href = 'login.html'; // Redirect to login page
+        }
+    </script>
+
+    <main class="flex-grow container mx-auto p-4 md:p-6">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-8 text-center">Guia de Segurança da Frota</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+
+            <section class="security-card">
+                <h2 class="text-green-700">
+                    <i class="ph ph-shield-check"></i> Políticas de Segurança
+                </h2>
+                <p class="text-gray-700 mb-4 text-justify">Nossa política de segurança visa garantir a integridade de nossos motoristas, veículos e cargas, bem como a conformidade com todas as regulamentações de trânsito e segurança. Todos os colaboradores devem estar cientes e seguir estas diretrizes rigorosamente.</p>
+
+                <ul class="list-none text-gray-700 space-y-1">
+                    <li class="flex items-start">
+                        <i class="ph ph-check-circle text-green-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Direção Defensiva:</span> Todos os motoristas devem praticar direção defensiva e estar sempre atentos às condições da via e do tráfego.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-check-circle text-green-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Manutenção Preventiva:</span> Aderência estrita aos planos de manutenção preventiva para garantir o bom funcionamento dos veículos.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-check-circle text-green-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Uso de EPIs:</span> Uso obrigatório de Equipamentos de Proteção Individual (EPIs) quando aplicável.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-check-circle text-green-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Checklist Pré-Viagem:</span> Realização de checklist completo antes de cada viagem para verificar condições do veículo, documentação e carga.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-check-circle text-green-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Limites de Velocidade:</span> Respeitar rigorosamente os limites de velocidade e as leis de trânsito.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-check-circle text-green-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Zero Álcool e Drogas:</span> Proibição total do consumo de álcool e substâncias ilícitas.</span>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="security-card">
+                <h2 class="text-yellow-700">
+                    <i class="ph ph-warning-octagon"></i> Procedimentos em Caso de Acidente/Incidente
+                </h2>
+                <p class="text-gray-700 mb-4 text-justify">Em situações de emergência, seguir os passos abaixo é crucial para a segurança e para o correto gerenciamento da ocorrência.</p>
+                <ol class="list-none text-gray-700 space-y-1">
+                    <li class="flex items-start">
+                        <i class="ph ph-number-circle-one text-blue-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Mantenha a Calma:</span> Acalme-se e verifique a segurança de todos os envolvidos.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-number-circle-two text-blue-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Sinalize o Local:</span> Sinalize a área para evitar novos acidentes.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-number-circle-three text-blue-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Preste Socorro:</span> Se houver feridos, preste os primeiros socorros se for capacitado e chame imediatamente o SAMU (192) ou Bombeiros (193).</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-number-circle-four text-blue-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Acione as Autoridades:</span> Contate a Polícia Militar (190) ou Polícia Rodoviária Federal (191) conforme o caso.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-number-circle-five text-blue-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Comunique a Empresa:</span> Informe imediatamente a gestão da frota sobre o ocorrido.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-number-circle-six text-blue-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Não Admita Culpa:</span> Não admita culpa ou faça acordos no local do acidente.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="ph ph-number-circle-seven text-blue-600 mt-1 mr-2 flex-shrink-0"></i>
+                        <span><span class="font-semibold">Colete Informações:</span> Anote dados dos veículos, motoristas, testemunhas, local e tire fotos.</span>
+                    </li>
+                </ol>
+            </section>
+
+            <section class="security-card md:col-span-2">
+                <h2 class="text-blue-700">
+                    <i class="ph ph-phone-call"></i> Contatos de Emergência
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-gray-700">
+                    <div>
+                        <p class="mb-1"><span class="font-semibold">Gestão de Frota:</span> <a href="tel:+55XX-XXXX-XXXX" class="text-blue-600 hover:underline">(XX) XXXX-XXXX</a></p>
+                        <p class="mb-1"><span class="font-semibold">Setor de Segurança:</span> <a href="tel:+55XX-YYYY-YYYY" class="text-blue-600 hover:underline">(XX) YYYY-YYYY</a></p>
+                        <p><span class="font-semibold">Seguradora (Veículos):</span> <a href="tel:0800-ZZZ-ZZZZ" class="text-blue-600 hover:underline">0800-ZZZ-ZZZZ</a></p>
+                    </div>
+                    <div>
+                        <p class="mb-1"><span class="font-semibold">SAMU (Emergências Médicas):</span> <a href="tel:192" class="text-blue-600 hover:underline">192</a></p>
+                        <p class="mb-1"><span class="font-semibold">Bombeiros:</span> <a href="tel:193" class="text-blue-600 hover:underline">193</a></p>
+                        <p class="mb-1"><span class="font-semibold">Polícia Militar:</span> <a href="tel:190" class="text-blue-600 hover:underline">190</a></p>
+                        <p><span class="font-semibold">Polícia Rodoviária Federal:</span> <a href="tel:191" class="text-blue-600 hover:underline">191</a></p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-4 mt-10 rounded-t-xl">
+        <p>&copy; 2025 BFM Frotas. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        // Variável para controlar se um clique é para abrir ou fechar um dropdown
+        let isOpeningDropdown = false;
+
+        // Função para alternar dropdowns (principais e aninhados)
+        function toggleDropdown(buttonElement) {
+            const dropdownContent = buttonElement.nextElementSibling;
+            const caretIcon = buttonElement.querySelector('.caret-icon');
+
+            // Define que um dropdown está sendo aberto para evitar fechamento imediato pelo document click
+            isOpeningDropdown = true;
+
+            // Fecha todos os outros dropdowns ativos no mesmo nível, exceto os pais do dropdown que está sendo aberto
+            document.querySelectorAll('.dropdown-content.active').forEach(d => {
+                const parentDropdownOfCurrent = buttonElement.closest('.dropdown-content');
+
+                // Se o dropdown atual não é o que estamos abrindo/fechando
+                // E ele não é um ancestral do dropdown que estamos abrindo (para não fechar os pais)
+                // E ele não contém o dropdown que estamos abrindo (para nested dropdowns)
+                if (d !== dropdownContent && !d.contains(dropdownContent) && (!parentDropdownOfCurrent || !parentDropdownOfCurrent.contains(d))) {
+                    d.classList.remove('active');
+                    if (d.previousElementSibling && d.previousElementSibling.tagName === 'BUTTON') {
+                        const prevButton = d.previousElementSibling;
+                        const prevCaret = prevButton.querySelector('.caret-icon');
+                        if (prevCaret) {
+                            prevCaret.classList.remove('rotate');
+                        }
+                        prevButton.setAttribute('aria-expanded', 'false');
+                        // Remover 'active-menu' apenas para botões de menu top-level
+                        if (prevButton.classList.contains('menu-link')) {
+                            prevButton.classList.remove('active-menu');
+                        }
+                    }
+                }
+            });
+
+            // Alterna o dropdown clicado
+            const isOpen = dropdownContent.classList.contains('active');
+            dropdownContent.classList.toggle('active');
+            if (caretIcon) {
+                // Se é um caret-right, rotaciona para baixo (90deg). Senão, rotaciona 180deg.
+                if (caretIcon.classList.contains('ph-caret-right')) {
+                    caretIcon.classList.toggle('rotate', !isOpen);
+                } else {
+                    caretIcon.classList.toggle('rotate', !isOpen);
+                }
+            }
+
+            // Atualiza o atributo aria-expanded
+            buttonElement.setAttribute('aria-expanded', !isOpen); // !isOpen porque estamos alternando
+
+            // Adiciona/remove active-menu para botões de menu top-level
+            if (buttonElement.classList.contains('menu-link')) {
+                buttonElement.classList.toggle('active-menu', !isOpen);
+            }
+
+            // Reseta a flag após um pequeno atraso para permitir que o clique seja processado
+            setTimeout(() => {
+                isOpeningDropdown = false;
+            }, 100);
+        }
+
+        // Adiciona manipuladores de evento a todos os botões de dropdown (nível superior e gatilhos aninhados)
+        document.querySelectorAll('.dropdown > button, .dropdown-item-nested-trigger').forEach(button => {
+            button.addEventListener('click', function(event) {
+                toggleDropdown(this);
+                // Previne que o clique dentro de um dropdown aninhado feche o dropdown pai
+                if (this.classList.contains('dropdown-item-nested-trigger')) {
+                    event.stopPropagation();
+                }
+            });
+        });
+
+        // Fecha dropdowns ao clicar fora
+        document.addEventListener('click', function(event) {
+            // Se um dropdown acabou de ser aberto, não o feche imediatamente
+            if (isOpeningDropdown) {
+                return;
+            }
+
+            document.querySelectorAll('.dropdown-content.active').forEach(d => {
+                const dropdownContainer = d.closest('.dropdown');
+                // Verifica se o clique foi fora de qualquer container de dropdown ativo
+                if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                    d.classList.remove('active');
+                    if (d.previousElementSibling && d.previousElementSibling.tagName === 'BUTTON') {
+                        const prevButton = d.previousElementSibling;
+                        const prevCaret = prevButton.querySelector('.caret-icon');
+                        if (prevCaret) {
+                            prevCaret.classList.remove('rotate');
+                        }
+                        prevButton.setAttribute('aria-expanded', 'false');
+                        // Remover 'active-menu' apenas para botões de menu top-level
+                        if (prevButton.classList.contains('menu-link')) {
+                            prevButton.classList.remove('active-menu');
+                        }
+                    }
+                }
+            });
+        });
+
+
+        // Função para alternar o menu mobile
+        window.toggleMobileMenu = function() {
+            const nav = document.getElementById('main-nav');
+            nav.classList.toggle('active');
+            const menuIcon = document.querySelector('.menu-icon i');
+            if (nav.classList.contains('active')) {
+                menuIcon.classList.remove('ph-list');
+                menuIcon.classList.add('ph-x'); // Altera para o ícone de fechar
+            } else {
+                menuIcon.classList.remove('ph-x');
+                menuIcon.classList.add('ph-list'); // Altera de volta para o ícone de lista
+            }
+            // Fecha qualquer dropdown aberto quando o menu mobile é alternado
+            document.querySelectorAll('.dropdown-content.active').forEach(d => {
+                d.classList.remove('active');
+                if (d.previousElementSibling && d.previousElementSibling.tagName === 'BUTTON') {
+                    const prevButton = d.previousElementSibling;
+                    const prevCaret = prevButton.querySelector('.caret-icon');
+                    if (prevCaret) {
+                        prevCaret.classList.remove('rotate');
+                    }
+                    prevButton.setAttribute('aria-expanded', 'false');
+                    if (prevButton.classList.contains('menu-link')) {
+                        prevButton.classList.remove('active-menu');
+                    }
+                }
+            });
+        };
+
+        // Função de logout simples (para demonstração)
+        function logout() {
+            alert('Você foi desconectado.');
+            // Em uma aplicação real, você limparia os dados da sessão, redirecionaria, etc.
+            window.location.href = 'login.html'; // Exemplo de redirecionamento
+        }
+
+        // Define o item de menu ativo com base na URL da página atual
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname.split('/').pop(); // Obtém o nome do arquivo
+            document.querySelectorAll('nav .menu-link, nav .dropdown-item').forEach(link => {
+                if (link.href.split('/').pop() === currentPath) {
+                    link.classList.add('active-menu');
+                    // Se for um item de dropdown, também ativa o botão do dropdown pai (se aplicável)
+                    let parentDropdownContent = link.closest('.dropdown-content');
+                    while (parentDropdownContent) {
+                        const parentButton = parentDropdownContent.previousElementSibling;
+                        if (parentButton && (parentButton.classList.contains('menu-link') || parentButton.classList.contains('dropdown-item-nested-trigger'))) {
+                            parentButton.classList.add('active-menu');
+                            // Se for um botão de dropdown principal, ativa também o ícone de seta
+                            const caret = parentButton.querySelector('.caret-icon');
+                            if (caret) {
+                                if (caret.classList.contains('ph-caret-right')) {
+                                    caret.classList.add('rotate'); // Rotação para caret-right
+                                } else {
+                                    caret.classList.add('rotate'); // Rotação para caret-down
+                                }
+                            }
+                            // Garante que o dropdown pai também está "ativo" (aberto)
+                            parentDropdownContent.classList.add('active');
+                            parentButton.setAttribute('aria-expanded', 'true');
+                        }
+                        parentDropdownContent = parentDropdownContent.closest('.dropdown').parentElement.closest('.dropdown-content');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

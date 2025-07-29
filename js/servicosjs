@@ -1,0 +1,351 @@
+// --- SEGURANÇA DE LOGIN ---
+if (localStorage.getItem('logado') !== 'true') {
+    if (typeof __app_id === 'undefined') {
+        window.location.href = 'login.html';
+    } else {
+        console.log("Running in Canvas environment, bypassing login redirect.");
+        localStorage.setItem('logado', 'true');
+    }
+}
+
+function logout() {
+    localStorage.removeItem('logado');
+    if (typeof __app_id === 'undefined') {
+        window.location.href = 'login.html';
+    } else {
+        console.log("Running in Canvas environment, logout simulated.");
+    }
+}
+
+// --- FUNCIONALIDADE DE DROPDOWN MENUS ---
+const allDropdownContents = document.querySelectorAll('.dropdown-content');
+
+function toggleDropdown(id, event) {
+    event.stopPropagation(); 
+    const dropdownContent = document.getElementById(id);
+    if (!dropdownContent) return;
+
+    const currentButton = event.currentTarget;
+    const caretIcon = currentButton.querySelector('.caret-icon');
+
+    allDropdownContents.forEach(openDropdown => {
+        // Close other dropdowns that are not ancestors or descendants of the current dropdown
+        if (openDropdown !== dropdownContent && !dropdownContent.contains(openDropdown) && !openDropdown.contains(dropdownContent)) {
+            openDropdown.classList.remove('active');
+            const associatedCaret = openDropdown.previousElementSibling ? openDropdown.previousElementSibling.querySelector('.caret-icon') : null;
+            if (associatedCaret) {
+                if (associatedCaret.classList.contains('ph-caret-down') || associatedCaret.classList.contains('ph-caret-right')) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            }
+        }
+    });
+
+    dropdownContent.classList.toggle('active');
+    if (caretIcon) {
+        if (caretIcon.classList.contains('ph-caret-down') || caretIcon.classList.contains('ph-caret-right')) {
+            caretIcon.classList.toggle('rotate');
+        }
+    }
+}
+
+document.addEventListener('click', function(event) {
+    allDropdownContents.forEach(dropdownContent => {
+        const parentDropdown = dropdownContent.closest('.dropdown');
+        if (parentDropdown && !parentDropdown.contains(event.target) && dropdownContent.classList.contains('active')) {
+            dropdownContent.classList.remove('active');
+            const associatedCaret = parentDropdown.querySelector('.caret-icon'); 
+            if (associatedCaret) {
+                associatedCaret.classList.remove('rotate');
+            }
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('header .dropdown > button.menu-link').forEach(button => {
+        const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+        if (contentId) {
+            button.addEventListener('click', (event) => toggleDropdown(contentId, event));
+        }
+    });
+
+    document.querySelectorAll('.dropdown-item-nested-trigger').forEach(button => {
+        const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+        if (contentId) {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation(); 
+                const nestedContent = document.getElementById(contentId);
+                if (nestedContent) {
+                    const parentNestedDropdownContent = button.closest('.dropdown-content');
+                    if (parentNestedDropdownContent) {
+                        parentNestedDropdownContent.querySelectorAll('.nested-dropdown-content.active').forEach(openNested => {
+                            if (openNested !== nestedContent) {
+                                openNested.classList.remove('active');
+                                const openNestedCaret = openNested.previousElementSibling ? openNested.previousElementSibling.querySelector('.caret-icon') : null;
+                                if (openNestedCaret) openNestedCaret.classList.remove('rotate');
+                            }
+                        });
+                    }
+
+                    nestedContent.classList.toggle('active');
+                    const caret = button.querySelector('.caret-icon');
+                    if (caret) {
+                        caret.classList.toggle('rotate');
+                    }
+                }
+            });
+        }
+    });
+
+    // --- Ativar o menu da página atual e a lógica "arrumada" do cabeçalho ---
+    const currentPath = window.location.pathname.split('/').pop();
+    
+    document.querySelectorAll('.menu-link, .dropdown-item').forEach(link => {
+        const linkHref = link.getAttribute('href');
+        if (linkHref && linkHref.includes(currentPath) && currentPath !== '') {
+            link.classList.add('active-menu');
+        }
+    });
+
+    // Handle specific menu activation for 'Serviços' with "arrumada" logic
+    if (currentPath === 'servicos.html') {
+        const servicosLink = document.querySelector('a[href="servicos.html"]');
+        if (servicosLink) {
+            servicosLink.classList.add('active-menu'); 
+        }
+    }
+});
+
+// --- FUNCIONALIDADE DE MENU MOBILE ---
+function toggleMobileMenu() {
+    const nav = document.querySelector('header nav');
+    const menuIcon = document.querySelector('.menu-icon');
+    nav.classList.toggle('active');
+    if (nav.classList.contains('active')) {
+        menuIcon.innerHTML = '<i class="ph ph-x"></i>'; 
+    } else {
+        menuIcon.innerHTML = '<i class="ph ph-list"></i>'; 
+    }
+    // Quando o menu mobile fecha, garantir que todos os dropdowns internos fechem
+    allDropdownContents.forEach(dropdownContent => {
+        dropdownContent.classList.remove('active');
+        const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+        if (associatedCaret) {
+            associatedCaret.classList.remove('rotate');
+        }
+    });
+}
+
+window.addEventListener('resize', function() {
+    const nav = document.querySelector('header nav');
+    const menuIcon = document.querySelector('.menu-icon');
+    if (window.innerWidth > 768 && nav.classList.contains('active')) {
+        nav.classList.remove('active');
+        menuIcon.innerHTML = '<i class="ph ph-list"></i>';
+    }
+    // Quando a tela é redimensionada para desktop, garantir que todos os dropdowns internos fechem
+    allDropdownContents.forEach(dropdownContent => {
+        dropdownContent.classList.remove('active');
+        const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+        if (associatedCaret) {
+            associatedCaret.classList.remove('rotate');
+        }
+    });
+});
+
+// --- LÓGICA DO FORMULÁRIO DE CADASTRO DE SERVIÇOS ---
+const servicoForm = document.getElementById('servicoForm');
+const servicosTableBody = document.getElementById('servicosTableBody');
+const userFeedback = document.getElementById('userFeedback');
+
+// Initialize data from localStorage or as empty arrays
+let servicos = JSON.parse(localStorage.getItem('servicos')) || [];
+let nextServicoId = JSON.parse(localStorage.getItem('nextServicoId')) || 1;
+
+// Display user feedback messages (success/error banners)
+function showFeedback(message, type = 'success') {
+    userFeedback.textContent = message;
+    userFeedback.className = `p-4 mt-4 rounded-lg text-white font-bold text-center ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    userFeedback.classList.remove('hidden');
+    setTimeout(() => {
+        userFeedback.classList.add('hidden');
+    }, 3000); // Hide after 3 seconds
+}
+
+// Render servicos in the table
+function renderServicos() {
+    servicosTableBody.innerHTML = ''; // Clear table before re-rendering
+    if (servicos.length === 0) {
+        servicosTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Nenhum serviço cadastrado.</td></tr>`;
+        return;
+    }
+
+    servicos.forEach(serv => {
+        const row = servicosTableBody.insertRow();
+        row.className = 'hover:bg-gray-100 transition-colors';
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">${serv.id}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${serv.nome}</td>
+            <td class="px-6 py-4 whitespace-nowrap">R$ ${serv.custoEstimado ? parseFloat(serv.custoEstimado).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button onclick="openEditServicoModal(${serv.id})" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Editar">
+                    <i class="ph ph-pencil-simple text-lg"></i>
+                </button>
+                <button onclick="confirmDeleteServico(${serv.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                    <i class="ph ph-trash text-lg"></i>
+                </button>
+            </td>
+        `;
+    });
+
+    localStorage.setItem('servicos', JSON.stringify(servicos));
+}
+
+// Add new servico
+servicoForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const nomeServicoInput = document.getElementById('nomeServico');
+    const custoEstimadoInput = document.getElementById('custoEstimado');
+
+    const nomeServico = nomeServicoInput.value.trim();
+    let custoEstimado = custoEstimadoInput.value.trim();
+
+    if (nomeServico === '') {
+        showFeedback('O nome do serviço é obrigatório.', 'error');
+        return;
+    }
+
+    // Check for duplicate service name (case-insensitive)
+    const isDuplicate = servicos.some(serv => serv.nome.toLowerCase() === nomeServico.toLowerCase());
+    if (isDuplicate) {
+        showFeedback('Um serviço com este nome já existe.', 'error');
+        return;
+    }
+
+    const newServico = {
+        id: nextServicoId++,
+        nome: nomeServico,
+        custoEstimado: custoEstimado !== '' ? parseFloat(custoEstimado) : null
+    };
+
+    servicos.push(newServico);
+    localStorage.setItem('nextServicoId', JSON.stringify(nextServicoId));
+    renderServicos();
+    showFeedback('Serviço cadastrado com sucesso!');
+    servicoForm.reset(); // Clear the form
+});
+
+// --- EDIT MODAL LOGIC ---
+const editServicoModal = document.getElementById('editServicoModal');
+const editServicoForm = document.getElementById('editServicoForm');
+const editNomeServicoInput = document.getElementById('edit-nomeServico');
+const editCustoEstimadoInput = document.getElementById('edit-custoEstimado');
+let currentEditServicoId = null; // To store the ID of the service being edited
+
+function openEditServicoModal(id) {
+    const servicoToEdit = servicos.find(serv => serv.id === id);
+    if (!servicoToEdit) {
+        showFeedback('Serviço não encontrado para edição.', 'error');
+        return;
+    }
+
+    currentEditServicoId = id;
+    editNomeServicoInput.value = servicoToEdit.nome;
+    editCustoEstimadoInput.value = servicoToEdit.custoEstimado !== null ? servicoToEdit.custoEstimado.toFixed(2) : '';
+    editServicoModal.classList.add('flex');
+    editServicoModal.classList.remove('hidden');
+}
+
+function closeEditServicoModal() {
+    editServicoModal.classList.add('hidden');
+    editServicoModal.classList.remove('flex');
+    editServicoForm.reset(); // Clear form on close
+    currentEditServicoId = null; // Reset ID
+}
+
+editServicoForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const updatedNome = editNomeServicoInput.value.trim();
+    const updatedCusto = editCustoEstimadoInput.value.trim();
+
+    if (updatedNome === '') {
+        showFeedback('O nome do serviço não pode ser vazio.', 'error');
+        return;
+    }
+
+    // Check for duplicate service name, excluding the current service being edited
+    const isDuplicate = servicos.some(serv => 
+        serv.id !== currentEditServicoId && serv.nome.toLowerCase() === updatedNome.toLowerCase()
+    );
+    if (isDuplicate) {
+        showFeedback('Já existe outro serviço com este nome.', 'error');
+        return;
+    }
+
+    servicos = servicos.map(serv => 
+        serv.id === currentEditServicoId 
+            ? { ...serv, nome: updatedNome, custoEstimado: updatedCusto !== '' ? parseFloat(updatedCusto) : null } 
+            : serv
+    );
+
+    renderServicos();
+    showFeedback('Serviço atualizado com sucesso!');
+    closeEditServicoModal();
+});
+
+// --- CONFIRMATION MODAL LOGIC (for delete) ---
+const confirmModal = document.getElementById('confirmModal');
+const confirmModalTitle = document.getElementById('confirmModalTitle');
+const confirmModalMessage = document.getElementById('confirmModalMessage');
+const confirmModalNo = document.getElementById('confirmModalNo');
+const confirmModalYes = document.getElementById('confirmModalYes');
+let confirmAction = null; // To store the function to execute on confirmation
+
+function showConfirmModal(title, message, onConfirm) {
+    confirmModalTitle.textContent = title;
+    confirmModalMessage.textContent = message;
+    confirmAction = onConfirm; // Store the callback function
+    confirmModal.classList.add('flex');
+    confirmModal.classList.remove('hidden');
+}
+
+function hideConfirmModal() {
+    confirmModal.classList.add('hidden');
+    confirmModal.classList.remove('flex');
+    confirmAction = null; // Clear the callback
+}
+
+confirmModalNo.addEventListener('click', hideConfirmModal);
+confirmModalYes.addEventListener('click', () => {
+    if (confirmAction) {
+        confirmAction(); // Execute the stored callback
+    }
+    hideConfirmModal();
+});
+
+function confirmDeleteServico(id) {
+    showConfirmModal(
+        'Excluir Serviço',
+        'Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.',
+        () => deleteServico(id) // Pass the delete function as a callback
+    );
+}
+
+function deleteServico(id) {
+    const initialLength = servicos.length;
+    servicos = servicos.filter(serv => serv.id !== id);
+    if (servicos.length < initialLength) {
+        renderServicos();
+        showFeedback('Serviço excluído com sucesso!', 'success');
+    } else {
+        showFeedback('Erro ao excluir serviço.', 'error');
+    }
+}
+
+// Initial render when the page loads
+document.addEventListener('DOMContentLoaded', renderServicos);

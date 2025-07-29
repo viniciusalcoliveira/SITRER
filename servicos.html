@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Serviços - BFM Frotas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+            body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            color: #2c3e50; /* Darker text for readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+               /* Custom animation for dropdown fade-in (downwards) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { /* Used for main menus now */
+            animation: fadeInDown 0.3s ease-out forwards;
+            transform-origin: top center;
+        }
+
+        /* Custom animation for dropdown fade-in (sideways) */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right { /* Used for sub-menus now */
+            animation: fadeInRight 0.3s ease-out forwards;
+            transform-origin: left center;
+        }
+
+
+        /* Custom scrollbar styling for a consistent look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(20, 139, 36); /* Semi-transparent primary green */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 77, 62, 0.1); /* Lighter track */
+        }
+
+        /* Base dropdown item styling */
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            white-space: nowrap;
+            display: block; /* Ensure it takes full width */
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0f2f7; /* lighter blue/greenish hue for hover */
+            color: #1e7e15; /* primary green for hover text */
+        }
+
+        /* Specific styling for nested submenu trigger buttons */
+        .submenu-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            color: #374151;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent; /* Reset button default bg */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .submenu-trigger:hover {
+            background-color: #e0f2f7;
+            color: #0da326;
+        }
+
+        /* Adjust caret rotation for main dropdowns (back to caret-down) */
+        .ph-caret-down {
+            transition: transform 0.2s ease-in-out;
+        }
+        .menu-link[aria-expanded="true"] .ph-caret-down {
+            transform: rotate(180deg); /* Points up when open */
+        }
+
+        /* Adjust caret rotation for submenus (still caret-right) */
+        .ph-caret-right {
+            transition: transform 0.2s ease-in-out;
+        }
+        .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+            transform: rotate(90deg); /* Rotates down when open */
+        }
+
+        /* Dropdown content positioning for downwards opening (main menus) */
+        .dropdown-content {
+            position: absolute;
+            top: 100%; /* Position directly below the parent button */
+            left: 0;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+        /* Submenu content positioning for side opening (submenus) */
+        .submenu-content {
+            position: absolute;
+            top: 0; /* Align top with parent submenu trigger */
+            left: 100%; /* Position to the right of parent submenu trigger */
+            margin-left: 0.5rem; /* Small gap */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            min-width: 220px;
+            z-index: 9999;
+            flex-direction: column;
+            border: 1px solid #e2e8f0; /* Subtle border for definition */
+            border-left: 1px solid #e2e8f0; /* Add a subtle left border for visual separation */
+            padding: 0.5rem 0; /* Add some vertical padding inside the menu */
+        }
+
+
+         /* Active menu styling */
+        .active-menu {
+            color: #facc15 !important; /* yellow-300 */
+            border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mb-0 {
+                margin-bottom: 1rem; /* Adjust margin for mobile brand */
+            }
+            .nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+            .menu-link, .dropdown > button {
+                width: 100%;
+                text-align: left;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Main dropdowns revert to full width and relative positioning for mobile */
+            .dropdown-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 1rem; /* Indent dropdown items */
+                margin-left: 0; /* Remove margin */
+            }
+            /* Submenus also revert to full width and static positioning for mobile */
+            .submenu-content {
+                position: static !important; /* Override absolute for mobile */
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border-left: none; /* Remove left border */
+                border-top: 1px solid #e2e8f0; /* Add a subtle divider */
+                padding-left: 2rem; /* Further indent nested items */
+                margin-left: 0; /* Remove margin */
+            }
+
+            /* Caret rotations for mobile should be different (pointing down when open) */
+            .ph-caret-down, .ph-caret-right {
+                transform: rotate(0deg) !important; /* Reset to default right-pointing */
+            }
+            .menu-link[aria-expanded="true"] .ph-caret-down,
+            .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+                transform: rotate(90deg) !important; /* Rotate down for consistency in mobile dropdowns */
+            }
+        }
+
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+      <header class="bg-green-700 text-white p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-0 z-50 rounded-b-xl">
+    <div class="font-extrabold text-3xl tracking-wider select-none mb-4 md:mb-0" tabindex="0">
+        <span class="text-white">BFM</span><span class="text-yellow-300"> FROTAS</span>
+    </div>
+
+    <nav class="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center" role="navigation" aria-label="Menu principal">
+
+        <a href="dashboard.html" class="menu-link text-white font-semibold text-base py-2 px-2 relative whitespace-nowrap border-b-4 border-transparent hover:text-yellow-300 hover:border-yellow-300 transition">
+            Dashboard
+        </a>
+
+        <div class="relative dropdown" id="dropdown-configuracoes">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 active-menu hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Configurações <i class="ph ph-caret-down ml-1"></i> </button>
+
+            <div id="menu-configuracoes" class="dropdown-content hidden">
+                <div class="relative group" id="dropdown-veiculos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Veículos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-veiculos-submenu" class="submenu-content hidden">
+                        <a href="cadastroveiculos.html" class="dropdown-item">Cadastro de Veículos</a>
+                        <a href="cadastro_marcas.html" class="dropdown-item">Cadastro de Marcas</a>
+                        <a href="cadastro_modelo.html" class="dropdown-item">Cadastro de Modelo</a>
+                        <a href="cadastro_tipo_veiculo.html" class="dropdown-item">Cadastro Tipo Veículo</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-servicos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Serviços
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+
+                    <div id="menu-servicos-submenu" class="submenu-content hidden">
+                          <a href="servicos.html" class="dropdown-item">Cadastro de Serviços</a>
+                        <a href="cadastro-compartimentos.html" class="dropdown-item">Conjunto/Sistema</a>
+                          <a href="cadastro_acoes.html" class="dropdown-item">Operação Executada</a>
+                       <a href="cadastro_conjunto.html" class="dropdown-item">Componente do Conjunto</a>
+                    </div>
+                </div>
+                <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Oficina
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="oficinas.html" class="dropdown-item">Cadastro Oficina</a>
+                        <a href="cadastro_tecnicos.html" class="dropdown-item">Cadastro Técnico</a>
+                    </div>
+                </div>
+                 <div class="relative group" id="dropdown-produtos-submenu">
+                    <button class="submenu-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+                        Produtos
+                        <i class="ph ph-caret-right ml-2"></i>
+                    </button>
+                    <div id="menu-produtos-submenu" class="submenu-content hidden">
+                        <a href="produto." class="dropdown-item">Cadastro Produto</a>
+                        <a href="fornecedor.html" class="dropdown-item">Cadastro Fornecedores</a>
+                    </div>
+                </div>
+                <a href="cadastro_periodicidade.html" class="dropdown-item">Plano de Manutenção</a>
+            </div>
+        </div>
+        <div class="relative dropdown" id="dropdown-plano">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Plano de Manutenção <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-plano" class="dropdown-content hidden">
+                <a href="pmp.html" class="dropdown-item">PMP - Preventiva</a>
+                <a href="PL.html" class="dropdown-item">PL - Lubrificação</a>
+                <a href="pmpr.html" class="dropdown-item">PMPR - Preditiva Programada</a>
+                <a href="pi.html" class="dropdown-item">PI - Inspeção</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-os">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Ordem de Serviço <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-os" class="dropdown-content hidden">
+                <a href="agendamento.html" class="dropdown-item">Gerar Ordem de Serviço</a>
+            </div>
+        </div>
+
+        <div class="relative dropdown" id="dropdown-gerenciamento">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false">
+                Gerenciamento <i class="ph ph-caret-down ml-1"></i> </button>
+            <div id="menu-gerenciamento" class="dropdown-content hidden">
+                <a href="controle.html" class="dropdown-item">Controle</a>
+                <a href="visaodafrota.html" class="dropdown-item">Visão Geral de Frota</a>
+            </div>
+        </div>
+
+        <a href="seguranca.html" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Segurança
+        </a>
+
+        <div class="relative dropdown" id="dropdown-alerts">
+            <button class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition flex items-center gap-1" type="button" aria-haspopup="true" aria-expanded="false" id="alertBellButton">
+                <i class="ph ph-bell text-xl"></i>
+                <span id="alertCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 -mt-4 -mr-4 absolute top-1/2 left-1/2 transform translate-x-1/4 -translate-y-1/4" style="display: none;">0</span>
+            </button>
+            <div id="alertDropdown" class="dropdown-content hidden absolute top-full right-0 bg-white rounded-xl shadow-xl min-w-[300px] flex-col z-[9999] p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Notificações</h3>
+                <div id="alertList" class="text-gray-700">
+                    <p class="text-sm text-gray-500">Nenhum alerta no momento.</p>
+                </div>
+            </div>
+        </div>
+        <a href="#" onclick="logout()" class="menu-link text-white font-semibold text-base py-2 px-2 hover:text-yellow-300 hover:border-yellow-300 border-b-4 border-transparent transition">
+            Sair
+        </a>
+    </nav>
+</header>  
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                const dropdownContent = dropdown.querySelector('.dropdown-content');
+
+                if (button && dropdownContent) {
+                    button.addEventListener('click', function(event) {
+                        event.stopPropagation(); // Prevent document click from immediately closing
+                        // Close other open dropdowns
+                        dropdowns.forEach(otherDropdown => {
+                            const otherDropdownContent = otherDropdown.querySelector('.dropdown-content');
+                            const otherButton = otherDropdown.querySelector('button[aria-haspopup="true"]');
+                            if (otherDropdown !== dropdown && otherDropdownContent && !otherDropdownContent.classList.contains('hidden')) {
+                                otherDropdownContent.classList.add('hidden');
+                                otherDropdownContent.classList.remove('animate-fade-in-down');
+                                if (otherButton) {
+                                    otherButton.setAttribute('aria-expanded', 'false');
+                                }
+                            }
+                        });
+
+                        // Toggle current dropdown
+                        dropdownContent.classList.toggle('hidden');
+                        dropdownContent.classList.toggle('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', dropdownContent.classList.contains('hidden') ? 'false' : 'true');
+
+                        // Close any open submenus within this dropdown when its main menu is toggled
+                        const openSubmenus = dropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                        openSubmenus.forEach(submenu => {
+                            submenu.classList.add('hidden');
+                            submenu.classList.remove('animate-fade-in-right');
+                            const submenuTrigger = submenu.previousElementSibling;
+                            if (submenuTrigger && submenuTrigger.hasAttribute('aria-expanded')) {
+                                submenuTrigger.setAttribute('aria-expanded', 'false');
+                            }
+                        });
+                    });
+
+                    // Prevent clicks inside the dropdown from closing it
+                    dropdownContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                dropdowns.forEach(dropdown => {
+                    const dropdownContent = dropdown.querySelector('.dropdown-content');
+                    const button = dropdown.querySelector('button[aria-haspopup="true"]');
+                    // Check if the click was outside the dropdown button and content
+                    if (dropdownContent && button && !dropdown.contains(event.target)) {
+                        dropdownContent.classList.add('hidden');
+                        dropdownContent.classList.remove('animate-fade-in-down');
+                        button.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Submenu logic
+            const submenuTriggers = document.querySelectorAll('.submenu-trigger');
+            submenuTriggers.forEach(trigger => {
+                const submenuContent = trigger.nextElementSibling; // The submenu content
+                if (submenuContent && submenuContent.classList.contains('submenu-content')) {
+                    trigger.addEventListener('click', function(event) {
+                        event.stopPropagation(); // Prevent parent dropdown from closing
+
+                        // Close other open submenus within the same parent dropdown
+                        const parentDropdownContent = trigger.closest('.dropdown-content');
+                        if (parentDropdownContent) {
+                            const otherSubmenus = parentDropdownContent.querySelectorAll('.submenu-content:not(.hidden)');
+                            otherSubmenus.forEach(otherSubmenu => {
+                                const otherTrigger = otherSubmenu.previousElementSibling;
+                                if (otherSubmenu !== submenuContent && otherTrigger) {
+                                    otherSubmenu.classList.add('hidden');
+                                    otherSubmenu.classList.remove('animate-fade-in-right');
+                                    otherTrigger.setAttribute('aria-expanded', 'false');
+                                }
+                            });
+                        }
+
+                        // Toggle current submenu
+                        submenuContent.classList.toggle('hidden');
+                        submenuContent.classList.toggle('animate-fade-in-right');
+                        trigger.setAttribute('aria-expanded', submenuContent.classList.contains('hidden') ? 'false' : 'true');
+                    });
+
+                    // Prevent clicks inside submenu from closing it
+                    submenuContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+
+            // Alert Bell Button Logic
+            const alertBellButton = document.getElementById('alertBellButton');
+            const alertDropdown = document.getElementById('alertDropdown');
+            if (alertBellButton && alertDropdown) {
+                alertBellButton.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevents this click from bubbling up to document
+                    alertDropdown.classList.toggle('hidden');
+                    alertDropdown.classList.toggle('animate-fade-in-down');
+                    alertBellButton.setAttribute('aria-expanded', alertDropdown.classList.contains('hidden') ? 'false' : 'true');
+                });
+
+                alertDropdown.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevents clicks *inside* the dropdown from closing it
+                });
+            }
+        });
+
+        function logout() {
+            alert('Você foi desconectado.'); // Placeholder for logout logic
+            // window.location.href = 'login.html'; // Redirect to login page
+        }
+    </script>
+
+    <main class="max-w-4xl mx-auto my-12 px-4 md:px-6">
+        <h1 class="font-extrabold text-5xl mb-10 text-center text-green-800 tracking-wide select-none">Cadastro de Serviços</h1>
+        
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg mb-12" aria-label="Formulário de Cadastro de Serviço">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Adicionar Novo Serviço</h2>
+            <form id="servicoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="conjuntoSistema" class="block font-semibold mb-2 text-gray-700">Conjunto/Sistema:</label>
+                    <div class="flex items-center gap-2">
+                        <select id="conjuntoSistema" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                            <option value="">Selecione um Conjunto/Sistema</option>
+                        </select>
+                        <button type="button" onclick="openAddModal('compartimentos')" class="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors" title="Adicionar novo Conjunto/Sistema">
+                            <i class="ph ph-plus-circle text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label for="operacaoExecutada" class="block font-semibold mb-2 text-gray-700">Operação Executada:</label>
+                    <div class="flex items-center gap-2">
+                        <select id="operacaoExecutada" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                            <option value="">Selecione uma Operação</option>
+                        </select>
+                        <button type="button" onclick="openAddModal('acoes')" class="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors" title="Adicionar nova Operação Executada">
+                            <i class="ph ph-plus-circle text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="md:col-span-2"> <label for="componenteConjunto" class="block font-semibold mb-2 text-gray-700">Componente do Conjunto:</label>
+                    <div class="flex items-center gap-2">
+                        <select id="componenteConjunto" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
+                            <option value="">Selecione um Componente</option>
+                        </select>
+                        <button type="button" onclick="openAddModal('conjuntos')" class="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors" title="Adicionar novo Componente do Conjunto">
+                            <i class="ph ph-plus-circle text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="bg-green-800 text-white font-bold text-lg py-3 px-8 rounded-lg hover:bg-green-700 transition-colors duration-300 shadow-md">
+                        Cadastrar Serviço
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white p-6 md:p-8 rounded-3xl shadow-lg" aria-label="Tabela de Serviços Cadastrados">
+            <h2 class="text-2xl font-bold text-green-800 mb-6">Serviços Cadastrados</h2>
+            <div class="overflow-x-auto rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Serviço</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conjunto/Sistema</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operação Executada</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Componente do Conjunto</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="servicosTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="userFeedback" class="hidden"></div>
+
+        <div id="editServicoModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="editServicoModalTitle">
+                <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                    <h3 id="editServicoModalTitle" class="text-2xl font-bold text-green-900">Editar Serviço</h3>
+                    <button onclick="closeEditServicoModal()" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full" aria-label="Fechar modal">
+                        <i class="ph ph-x-circle text-3xl"></i>
+                    </button>
+                </div>
+                <div class="overflow-y-auto p-8">
+                    <form id="editServicoForm" class="flex flex-col gap-4">
+                        <div>
+                            <label for="edit-conjuntoSistema" class="block font-semibold mb-2">Conjunto/Sistema:</label>
+                            <select id="edit-conjuntoSistema" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"></select>
+                        </div>
+                        <div>
+                            <label for="edit-operacaoExecutada" class="block font-semibold mb-2">Operação Executada:</label>
+                            <select id="edit-operacaoExecutada" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"></select>
+                        </div>
+                        <div>
+                            <label for="edit-componenteConjunto" class="block font-semibold mb-2">Componente do Conjunto:</label>
+                            <select id="edit-componenteConjunto" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"></select>
+                        </div>
+                    </form>
+                </div>
+                <div class="flex justify-end items-center gap-4 mt-8 pt-5 border-t border-gray-200 px-8 pb-8">
+                    <button type="button" onclick="closeEditServicoModal()" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button type="submit" form="editServicoForm" class="bg-green-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirmModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
+                <h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mb-4">Confirmar Ação</h3>
+                <p id="confirmModalMessage" class="text-gray-600 mb-6">Você tem certeza?</p>
+                <div class="flex justify-end gap-4">
+                    <button id="confirmModalNo" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg">Não</button>
+                    <button id="confirmModalYes" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Sim, Excluir</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="addItemModal" class="fixed inset-0 bg-gray-800 bg-opacity-60 hidden items-center justify-center z-[1000] p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="addItemModalTitle">
+                <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                    <h3 id="addItemModalTitle" class="text-2xl font-bold text-green-900">Adicionar Novo Item</h3>
+                    <button onclick="closeAddItemModal()" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full" aria-label="Fechar modal">
+                        <i class="ph ph-x-circle text-3xl"></i>
+                    </button>
+                </div>
+                <div class="overflow-y-auto p-8">
+                    <form id="addItemForm" class="flex flex-col gap-4">
+                        <div>
+                            <label for="newItemName" id="newItemLabel" class="block font-semibold mb-2">Nome do Item:</label>
+                            <input type="text" id="newItemName" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500" placeholder="Digite o nome do novo item">
+                        </div>
+                    </form>
+                </div>
+                <div class="flex justify-end items-center gap-4 mt-8 pt-5 border-t border-gray-200 px-8 pb-8">
+                    <button type="button" onclick="closeAddItemModal()" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button type="submit" form="addItemForm" class="bg-green-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- SEGURANÇA DE LOGIN ---
+        if (localStorage.getItem('logado') !== 'true') {
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, bypassing login redirect.");
+                localStorage.setItem('logado', 'true');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('logado');
+            if (typeof __app_id === 'undefined') {
+                window.location.href = 'login.html';
+            } else {
+                console.log("Running in Canvas environment, logout simulated.");
+            }
+        }
+
+        // --- FUNCIONALIDADE DE DROPDOWN MENUS (Header) ---
+        const allDropdownContents = document.querySelectorAll('.dropdown-content');
+
+        function toggleDropdown(id, event) {
+            event.stopPropagation(); 
+            const dropdownContent = document.getElementById(id);
+            if (!dropdownContent) return;
+
+            const currentButton = event.currentTarget;
+            const caretIcon = currentButton.querySelector('.caret-icon');
+
+            allDropdownContents.forEach(openDropdown => {
+                if (openDropdown !== dropdownContent && !dropdownContent.contains(openDropdown) && !openDropdown.contains(dropdownContent)) {
+                    openDropdown.classList.remove('active');
+                    const associatedCaret = openDropdown.previousElementSibling ? openDropdown.previousElementSibling.querySelector('.caret-icon') : null;
+                    if (associatedCaret) {
+                        if (associatedCaret.classList.contains('ph-caret-down') || associatedCaret.classList.contains('ph-caret-right')) {
+                            associatedCaret.classList.remove('rotate');
+                        }
+                    }
+                }
+            });
+
+            dropdownContent.classList.toggle('active');
+            if (caretIcon) {
+                if (caretIcon.classList.contains('ph-caret-down') || caretIcon.classList.contains('ph-caret-right')) {
+                    caretIcon.classList.toggle('rotate');
+                }
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            allDropdownContents.forEach(dropdownContent => {
+                const parentDropdown = dropdownContent.closest('.dropdown');
+                if (parentDropdown && !parentDropdown.contains(event.target) && dropdownContent.classList.contains('active')) {
+                    dropdownContent.classList.remove('active');
+                    const associatedCaret = parentDropdown.querySelector('.caret-icon'); 
+                    if (associatedCaret) {
+                        associatedCaret.classList.remove('rotate');
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('header .dropdown > button.menu-link').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                if (contentId) {
+                    button.addEventListener('click', (event) => toggleDropdown(contentId, event));
+                }
+            });
+
+            document.querySelectorAll('.dropdown-item-nested-trigger').forEach(button => {
+                const contentId = button.nextElementSibling ? button.nextElementSibling.id : null;
+                 if (contentId) {
+                    button.addEventListener('click', (event) => {
+                        event.stopPropagation(); 
+                        const nestedContent = document.getElementById(contentId);
+                        if (nestedContent) {
+                            const parentNestedDropdownContent = button.closest('.dropdown-content');
+                            if (parentNestedDropdownContent) {
+                                parentNestedDropdownContent.querySelectorAll('.nested-dropdown-content.active').forEach(openNested => {
+                                    if (openNested !== nestedContent) {
+                                        openNested.classList.remove('active');
+                                        const openNestedCaret = openNested.previousElementSibling ? openNested.previousElementSibling.querySelector('.caret-icon') : null;
+                                        if (openNestedCaret) openNestedCaret.classList.remove('rotate');
+                                    }
+                                });
+                            }
+
+                            nestedContent.classList.toggle('active');
+                            const caret = button.querySelector('.caret-icon');
+                            if (caret) {
+                                caret.classList.toggle('rotate');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // --- Ativar o menu da página atual e a lógica "arrumada" do cabeçalho ---
+            const currentPath = window.location.pathname.split('/').pop();
+            
+            document.querySelectorAll('.menu-link, .dropdown-item').forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (linkHref && linkHref.includes(currentPath) && currentPath !== '') {
+                    link.classList.add('active-menu');
+                }
+            });
+
+            // Handle specific menu activation for 'Serviços'
+            if (currentPath === 'servicos.html') {
+                const servicosLink = document.querySelector('a[href="servicos.html"]');
+                if (servicosLink) {
+                    servicosLink.classList.add('active-menu');
+                }
+            }
+        });
+
+        // --- FUNCIONALIDADE DE MENU MOBILE ---
+        function toggleMobileMenu() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            nav.classList.toggle('active');
+            if (nav.classList.contains('active')) {
+                menuIcon.innerHTML = '<i class="ph ph-x"></i>'; 
+            } else {
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>'; 
+            }
+            // Quando o menu mobile fecha, garantir que todos os dropdowns internos fechem
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        }
+        
+        window.addEventListener('resize', function() {
+            const nav = document.querySelector('header nav');
+            const menuIcon = document.querySelector('.menu-icon');
+            if (window.innerWidth > 768 && nav.classList.contains('active')) {
+                nav.classList.remove('active');
+                menuIcon.innerHTML = '<i class="ph ph-list"></i>';
+            }
+            // Quando a tela é redimensionada para desktop, garantir que todos os dropdowns internos fechem
+            allDropdownContents.forEach(dropdownContent => {
+                dropdownContent.classList.remove('active');
+                const associatedCaret = dropdownContent.previousElementSibling ? dropdownContent.previousElementSibling.querySelector('.caret-icon') : null;
+                if (associatedCaret) {
+                    associatedCaret.classList.remove('rotate');
+                }
+            });
+        });
+
+        // --- LÓGICA DE GERENCIAMENTO DE DADOS (LocalStorage) ---
+
+        // Funções para gerenciar os dados mestres no localStorage
+        function getLocalStorageData(key) {
+            return JSON.parse(localStorage.getItem(key)) || [];
+        }
+
+        function setLocalStorageData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // Popular os dropdowns
+        function populateDropdown(selectElementId, dataKey, selectedValue = '') {
+            const selectElement = document.getElementById(selectElementId);
+            const data = getLocalStorageData(dataKey);
+            
+            // --- DIAGNÓSTICO: Loga os dados que estão sendo usados para popular o dropdown ---
+            console.log(`Dados para ${dataKey}:`, data);
+            
+            // Limpa as opções existentes, mantendo a primeira de placeholder
+            selectElement.innerHTML = `<option value="">Selecione um${dataKey === 'compartimentos' ? ' Conjunto/Sistema' : dataKey === 'acoes' ? 'a Operação' : dataKey === 'conjuntos' ? ' Componente' : ''}</option>`;
+            
+            data.forEach(item => { // This loop iterates over the fetched data
+                const option = document.createElement('option');
+                // Assume que os itens em localStorage tem 'id' e 'nome'
+                option.value = item.nome; // Usamos o nome como valor
+                option.textContent = item.nome;
+                if (item.nome === selectedValue) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        }
+
+        // --- LÓGICA DO FORMULÁRIO DE CADASTRO DE SERVIÇO ---
+        const servicoForm = document.getElementById('servicoForm');
+        const servicosTableBody = document.getElementById('servicosTableBody');
+        const userFeedback = document.getElementById('userFeedback');
+
+        // Elements do modal de edição
+        const editServicoModal = document.getElementById('editServicoModal');
+        const editServicoForm = document.getElementById('editServicoForm');
+        
+        let servicos = getLocalStorageData('servicos');
+        let nextServicoId = JSON.parse(localStorage.getItem('nextServicoId')) || 1; // ID interno para gerenciamento
+
+        let currentEditingServicoId = null; // Para guardar o ID do serviço sendo editado
+
+        // Display user feedback messages (success/error banners)
+        function showFeedback(message, type = 'success') {
+            userFeedback.textContent = message;
+            userFeedback.className = `p-4 mt-4 rounded-lg text-white font-bold text-center ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            userFeedback.classList.remove('hidden');
+            setTimeout(() => {
+                userFeedback.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Função para gerar o ID sequencial (X.Y)
+        function generateSequentialId(conjuntoSistemaNome) {
+            const compartimentos = getLocalStorageData('compartimentos');
+            const conjuntoBase = compartimentos.find(c => c.nome === conjuntoSistemaNome);
+            
+            if (!conjuntoBase) {
+                // Se o Conjunto/Sistema não for encontrado nos dados mestres, retorna um ID genérico
+                console.warn(`Conjunto/Sistema "${conjuntoSistemaNome}" não encontrado nos dados mestres. Usando ID 99.`);
+                // Garante que o ID 99.X seja sequencial para o mesmo nome de conjunto, mesmo que não mapeado
+                const countExisting = servicos.filter(s => s.conjuntoSistema === conjuntoSistemaNome && s.idServicoFormatado.startsWith('99.')).length;
+                return `99.${countExisting + 1}`;
+            }
+
+            const baseNumber = conjuntoBase.id;
+            
+            // Filtra serviços com base no ID numérico do Conjunto/Sistema, não apenas o nome
+            const servicosDoConjunto = servicos.filter(s => {
+                // Verifica se o idServicoFormatado existe e começa com o baseNumber correto
+                return s.idServicoFormatado && s.idServicoFormatado.startsWith(`${baseNumber}.`);
+            });
+            
+            // Encontra o maior sub-ID existente para o conjunto, ou 0 se nenhum
+            let maxSubId = 0;
+            servicosDoConjunto.forEach(s => {
+                const parts = s.idServicoFormatado.split('.');
+                // Garante que o ID base do formato corresponde ao atual e extrai o sub-ID
+                if (parts.length > 1 && parseInt(parts[0]) === baseNumber) {
+                    const subId = parseInt(parts[1]);
+                    if (!isNaN(subId) && subId > maxSubId) {
+                        maxSubId = subId;
+                    }
+                }
+            });
+
+            return `${baseNumber}.${maxSubId + 1}`;
+        }
+
+
+        // Render servicos in the table
+        function renderServicos() {
+            servicosTableBody.innerHTML = ''; // Clear table before re-rendering
+            if (servicos.length === 0) {
+                servicosTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Nenhum serviço cadastrado.</td></tr>`;
+                return;
+            }
+
+            // Re-sequenciar todos os IDs após carregar/renderizar para garantir ordem e correção
+            const compartimentos = getLocalStorageData('compartimentos');
+            const conjuntoNomeParaId = {};
+            compartimentos.forEach(c => {
+                conjuntoNomeParaId[c.nome] = c.id;
+            });
+
+            // Ordena os serviços primeiro pelo ID numérico do conjunto, depois pelo ID interno (se houver, para manter ordem de inserção original dentro do conjunto)
+            servicos.sort((a, b) => {
+                const idA = conjuntoNomeParaId[a.conjuntoSistema] || 9999; // Usar um número alto para não mapeados no fim
+                const idB = conjuntoNomeParaId[b.conjuntoSistema] || 9999;
+
+                if (idA !== idB) {
+                    return idA - idB;
+                }
+                return a.id - b.id; // Ordem por ID interno para itens do mesmo conjunto (importante para stable sort)
+            });
+
+            // Re-gerar os IDs formatados em ordem, para garantir sequencialidade após ordenação/deleções
+            const conjSubIdCounters = {}; // Para controlar o contador de sub-IDs por conjunto BASE ID
+            servicos.forEach(s => {
+                const baseNumber = conjuntoNomeParaId[s.conjuntoSistema] || 99; // 99 para não mapeados
+                if (!conjSubIdCounters[baseNumber]) {
+                    conjSubIdCounters[baseNumber] = 0;
+                }
+                conjSubIdCounters[baseNumber]++;
+                s.idServicoFormatado = `${baseNumber}.${conjSubIdCounters[baseNumber]}`;
+            });
+
+            servicos.forEach(servico => {
+                const row = servicosTableBody.insertRow();
+                row.className = 'hover:bg-gray-100 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">${servico.idServicoFormatado}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${servico.conjuntoSistema}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${servico.operacaoExecutada}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${servico.componenteConjunto}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="openEditServicoModal(${servico.id})" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Editar">
+                            <i class="ph ph-pencil-simple text-lg"></i>
+                        </button>
+                        <button onclick="confirmDeleteServico(${servico.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
+                    </td>
+                `;
+            });
+
+            setLocalStorageData('servicos', servicos); // Salva após garantir idServicoFormatado
+        }
+
+        // Add new servico
+        servicoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const conjuntoSistema = document.getElementById('conjuntoSistema').value.trim();
+            const operacaoExecutada = document.getElementById('operacaoExecutada').value.trim();
+            const componenteConjunto = document.getElementById('componenteConjunto').value.trim();
+
+            if (conjuntoSistema === '' || operacaoExecutada === '' || componenteConjunto === '') {
+                showFeedback('Todos os campos são obrigatórios!', 'error');
+                return;
+            }
+
+            // Check for duplicate (case-insensitive for all fields combined)
+            const isDuplicate = servicos.some(s => 
+                s.conjuntoSistema.toLowerCase() === conjuntoSistema.toLowerCase() &&
+                s.operacaoExecutada.toLowerCase() === operacaoExecutada.toLowerCase() &&
+                s.componenteConjunto.toLowerCase() === componenteConjunto.toLowerCase()
+            );
+            if (isDuplicate) {
+                showFeedback('Já existe um serviço com esta combinação de Conjunto/Sistema, Operação Executada e Componente do Conjunto!', 'error');
+                return;
+            }
+
+            const newServico = {
+                id: nextServicoId++, // ID interno para unicidade no array
+                conjuntoSistema: conjuntoSistema,
+                operacaoExecutada: operacaoExecutada,
+                componenteConjunto: componenteConjunto,
+                idServicoFormatado: '' // Será gerado na renderização
+            };
+            
+            servicos.push(newServico);
+            localStorage.setItem('nextServicoId', nextServicoId); // Update next ID
+            servicoForm.reset();
+            renderServicos(); // Re-render table and update localStorage
+            showFeedback('Serviço cadastrado com sucesso!', 'success');
+        });
+
+        // --- EDIT MODAL FUNCTIONS ---
+        function openEditServicoModal(id) {
+            currentEditingServicoId = id;
+            const servicoToEdit = servicos.find(s => s.id === id);
+
+            if (servicoToEdit) {
+                // Popula os dropdowns do modal antes de selecionar o valor
+                populateDropdown('edit-conjuntoSistema', 'compartimentos', servicoToEdit.conjuntoSistema);
+                populateDropdown('edit-operacaoExecutada', 'acoes', servicoToEdit.operacaoExecutada);
+                populateDropdown('edit-componenteConjunto', 'conjuntos', servicoToEdit.componenteConjunto);
+
+                editServicoModal.classList.remove('hidden');
+                editServicoModal.classList.add('flex');
+            }
+        }
+
+        function closeEditServicoModal() {
+            editServicoModal.classList.add('hidden');
+            editServicoModal.classList.remove('flex');
+            currentEditingServicoId = null;
+        }
+
+        editServicoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const editedConjuntoSistema = document.getElementById('edit-conjuntoSistema').value.trim();
+            const editedOperacaoExecutada = document.getElementById('edit-operacaoExecutada').value.trim();
+            const editedComponenteConjunto = document.getElementById('edit-componenteConjunto').value.trim();
+            
+            if (editedConjuntoSistema === '' || editedOperacaoExecutada === '' || editedComponenteConjunto === '') {
+                showFeedback('Todos os campos são obrigatórios.', 'error');
+                return;
+            }
+
+            // Check for duplicate (case-insensitive, excluding the current item being edited)
+            const isDuplicate = servicos.some(s => 
+                s.id !== currentEditingServicoId && 
+                s.conjuntoSistema.toLowerCase() === editedConjuntoSistema.toLowerCase() &&
+                s.operacaoExecutada.toLowerCase() === editedOperacaoExecutada.toLowerCase() &&
+                s.componenteConjunto.toLowerCase() === editedComponenteConjunto.toLowerCase()
+            );
+            if (isDuplicate) {
+                showFeedback('Já existe outro serviço com esta combinação!', 'error');
+                return;
+            }
+
+            const servicoIndex = servicos.findIndex(s => s.id === currentEditingServicoId);
+            if (servicoIndex > -1) {
+                servicos[servicoIndex].conjuntoSistema = editedConjuntoSistema;
+                servicos[servicoIndex].operacaoExecutada = editedOperacaoExecutada;
+                servicos[servicoIndex].componenteConjunto = editedComponenteConjunto;
+                // O idServicoFormatado será re-gerado durante renderServicos() para garantir consistência
+
+                renderServicos(); // Re-render table and update localStorage
+                closeEditServicoModal();
+                showFeedback('Serviço atualizado com sucesso!', 'success');
+            } else {
+                showFeedback('Erro: Serviço não encontrado para edição.', 'error');
+            }
+        });
+
+        // --- CONFIRMATION MODAL FOR DELETION ---
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmModalTitle = document.getElementById('confirmModalTitle');
+        const confirmModalMessage = document.getElementById('confirmModalMessage');
+        const confirmModalNo = document.getElementById('confirmModalNo');
+        const confirmModalYes = document.getElementById('confirmModalYes');
+
+        let servicoIdToDelete = null;
+
+        function confirmDeleteServico(id) {
+            servicoIdToDelete = id;
+            confirmModalTitle.textContent = 'Confirmar Exclusão';
+            confirmModalMessage.textContent = 'Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.';
+            confirmModalYes.textContent = 'Sim, Excluir';
+            confirmModalYes.onclick = deleteServico; 
+            confirmModal.classList.remove('hidden');
+            confirmModal.classList.add('flex');
+        }
+
+        function deleteServico() {
+            if (servicoIdToDelete !== null) {
+                servicos = servicos.filter(s => s.id !== servicoIdToDelete);
+                renderServicos(); // Re-render table and update localStorage (isso irá re-sequenciar)
+                showFeedback('Serviço excluído com sucesso!', 'success');
+                closeConfirmModal();
+            }
+        }
+
+        function closeConfirmModal() {
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+            servicoIdToDelete = null;
+        }
+
+        confirmModalNo.addEventListener('click', closeConfirmModal);
+
+        // --- NEW: ADD ITEM MODAL FUNCTIONS ---
+        const addItemModal = document.getElementById('addItemModal');
+        const addItemModalTitle = document.getElementById('addItemModalTitle');
+        const newItemLabel = document.getElementById('newItemLabel');
+        const newItemNameInput = document.getElementById('newItemName');
+        const addItemForm = document.getElementById('addItemForm');
+
+        let currentModalDataType = ''; // 'compartimentos', 'acoes', 'conjuntos'
+        let currentSelectElementId = ''; // 'conjuntoSistema', 'operacaoExecutada', 'componenteConjunto'
+
+        function openAddModal(dataType) {
+            currentModalDataType = dataType;
+            newItemNameInput.value = ''; // Clear previous input
+
+            let titleText = '';
+            let labelText = '';
+            let selectId = '';
+
+            switch (dataType) {
+                case 'compartimentos':
+                    titleText = 'Adicionar Novo Conjunto/Sistema';
+                    labelText = 'Nome do Conjunto/Sistema:';
+                    selectId = 'conjuntoSistema';
+                    break;
+                case 'acoes':
+                    titleText = 'Adicionar Nova Operação Executada';
+                    labelText = 'Nome da Operação:';
+                    selectId = 'operacaoExecutada';
+                    break;
+                case 'conjuntos':
+                    titleText = 'Adicionar Novo Componente do Conjunto';
+                    labelText = 'Nome do Componente:';
+                    selectId = 'componenteConjunto';
+                    break;
+            }
+            addItemModalTitle.textContent = titleText;
+            newItemLabel.textContent = labelText;
+            currentSelectElementId = selectId; // Store the target select element ID
+
+            addItemModal.classList.remove('hidden');
+            addItemModal.classList.add('flex');
+            newItemNameInput.focus();
+        }
+
+        function closeAddItemModal() {
+            addItemModal.classList.add('hidden');
+            addItemModal.classList.remove('flex');
+            newItemNameInput.value = '';
+            currentModalDataType = '';
+            currentSelectElementId = '';
+        }
+
+        addItemForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const newItemName = newItemNameInput.value.trim();
+
+            if (newItemName === '') {
+                showFeedback('O nome do item não pode ser vazio!', 'error');
+                return;
+            }
+
+            let data = getLocalStorageData(currentModalDataType);
+            
+            // Generate next ID for the new master data item
+            // This logic is similar to how your cadastro_marcas.html handles it
+            let nextIdKey = `next${currentModalDataType.charAt(0).toUpperCase() + currentModalDataType.slice(1)}Id`;
+            let nextId = JSON.parse(localStorage.getItem(nextIdKey)) || 1;
+
+            // Check for duplicate
+            const isDuplicate = data.some(item => item.nome.toLowerCase() === newItemName.toLowerCase());
+            if (isDuplicate) {
+                showFeedback('Este item já existe!', 'error');
+                return;
+            }
+
+            const newItem = {
+                id: nextId++,
+                nome: newItemName
+            };
+
+            data.push(newItem);
+            setLocalStorageData(currentModalDataType, data);
+            localStorage.setItem(nextIdKey, nextId); // Update next ID in localStorage
+
+            populateDropdown(currentSelectElementId, currentModalDataType, newItemName); // Re-populate and select new item
+            showFeedback(`${newItemName} adicionado(a) com sucesso!`, 'success');
+            closeAddItemModal();
+        });
+
+
+        // --- INITIAL LOAD AND SETUP ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate dropdowns from localStorage
+            populateDropdown('conjuntoSistema', 'compartimentos');
+            populateDropdown('operacaoExecutada', 'acoes');
+            populateDropdown('componenteConjunto', 'conjuntos');
+
+            // Check if there's a flag in session storage to open the form
+            if (sessionStorage.getItem('openNewServicoForm')) {
+                sessionStorage.removeItem('openNewServicoForm');
+                document.getElementById('servicoForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('conjuntoSistema').focus();
+            }
+            renderServicos();
+
+            const servicosNavLink = document.querySelector('a[href="servicos.html"]');
+            if (servicosNavLink) {
+                servicosNavLink.addEventListener('click', function(event) {
+                    sessionStorage.setItem('openNewServicoForm', 'true');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

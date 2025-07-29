@@ -1,0 +1,269 @@
+/* --- Custom animation for dropdown fade-in (downwards) --- */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-down { /* Usado para menus principais agora */
+    animation: fadeInDown 0.3s ease-out forwards;
+    transform-origin: top center;
+}
+
+/* --- Custom animation for dropdown fade-in (sideways) --- */
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-in-right { /* Usado para sub-menus agora */
+    animation: fadeInRight 0.3s ease-out forwards;
+    transform-origin: left center;
+}
+
+/* --- Base dropdown item styling --- */
+.dropdown-item {
+    padding: 0.75rem 1.5rem;
+    color: #374151; /* gray-700 */
+    font-weight: 500;
+    white-space: nowrap;
+    display: block; /* Garante que ocupe a largura total */
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #e0f2f7; /* tonalidade mais clara de azul/esverdeado para hover */
+    color: #1e7e15; /* verde primário para o texto do hover */
+}
+
+/* --- Specific styling for nested submenu trigger buttons --- */
+.submenu-trigger {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1.5rem;
+    color: #374151;
+    font-weight: 500;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: transparent; /* Reseta o background padrão do botão */
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.submenu-trigger:hover {
+    background-color: #e0f2f7;
+    color: #0da326;
+}
+
+/* --- Adjust caret rotation for main dropdowns (back to caret-down) --- */
+.ph-caret-down {
+    transition: transform 0.2s ease-in-out;
+}
+.menu-link[aria-expanded="true"] .ph-caret-down {
+    transform: rotate(180deg); /* Aponta para cima quando aberto */
+}
+
+/* --- Adjust caret rotation for submenus (still caret-right) --- */
+.ph-caret-right {
+    transition: transform 0.2s ease-in-out;
+}
+.submenu-trigger[aria-expanded="true"] .ph-caret-right {
+    transform: rotate(90deg); /* Gira para baixo quando aberto */
+}
+
+/* --- Dropdown content positioning for downwards opening (main menus) --- */
+.dropdown-content {
+    position: absolute;
+    top: 100%; /* Posiciona diretamente abaixo do botão pai */
+    left: 0;
+    background-color: white;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+    min-width: 220px;
+    z-index: 9999;
+    flex-direction: column;
+    border: 1px solid #e2e8f0; /* Borda sutil para definição */
+    padding: 0.5rem 0; /* Adiciona algum preenchimento vertical dentro do menu */
+}
+
+/* --- Submenu content positioning for side opening (submenus) --- */
+.submenu-content {
+    position: absolute;
+    top: 0; /* Alinha o topo com o gatilho do submenu pai */
+    left: 100%; /* Posiciona à direita do gatilho do submenu pai */
+    margin-left: 0.5rem; /* Pequeno espaço */
+    background-color: white;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* shadow-xl */
+    min-width: 220px;
+    z-index: 9999;
+    flex-direction: column;
+    border: 1px solid #e2e8f0; /* Borda sutil para definição */
+    border-left: 1px solid #e2e8f0; /* Adiciona uma borda esquerda sutil para separação visual */
+    padding: 0.5rem 0; /* Adiciona algum preenchimento vertical dentro do menu */
+}
+
+/* --- Active menu styling --- */
+.active-menu {
+    color: #facc15 !important; /* yellow-300 */
+    border-bottom: 4px solid #facc15 !important; /* yellow-300 */
+}
+
+/* --- Responsive adjustments for mobile --- */
+@media (max-width: 767px) { /* Tailind's md breakpoint is 768px */
+    .md\:flex-row {
+        flex-direction: column;
+    }
+    .md\:mb-0 {
+        margin-bottom: 1rem; /* Ajusta a margem para a marca do celular */
+    }
+    .nav {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        padding-top: 1rem;
+    }
+    .menu-link, .dropdown > button {
+        width: 100%;
+        text-align: left;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    /* Main dropdowns revert to full width and relative positioning for mobile */
+    .dropdown-content {
+        position: static !important; /* Sobrescreve absoluto para mobile */
+        width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+        border-top: 1px solid #e2e8f0; /* Adiciona um divisor sutil */
+        padding-left: 1rem; /* Recua os itens do dropdown */
+        margin-left: 0; /* Remove a margem */
+    }
+    /* Submenus also revert to full width and static positioning for mobile */
+    .submenu-content {
+        position: static !important; /* Sobrescreve absoluto para mobile */
+        width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+        border-left: none; /* Remove a borda esquerda */
+        border-top: 1px solid #e2e8f0; /* Adiciona um divisor sutil */
+        padding-left: 2rem; /* Recua ainda mais os itens aninhados */
+        margin-left: 0; /* Remove a margem */
+    }
+
+    /* Caret rotations for mobile should be different (pointing down when open) */
+    .ph-caret-down, .ph-caret-right {
+        transform: rotate(0deg) !important; /* Redefine para apontar para a direita por padrão */
+    }
+    .menu-link[aria-expanded="true"] .ph-caret-down,
+    .submenu-trigger[aria-expanded="true"] .ph-caret-right {
+        transform: rotate(90deg) !important; /* Gira para baixo para consistência em dropdowns móveis */
+    }
+}
+/* Estilos para os cards de plano */
+.plan-card {
+    border-top: 8px solid; /* A cor da borda é definida por classes Tailwind no HTML */
+    animation: fadeInAnimation 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInAnimation {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos para botões dentro dos cards */
+.btn-plan {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    border-radius: 9999px; /* Full rounded */
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    margin-top: auto; /* Empurra para a parte inferior do card */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Cores específicas para os botões */
+.plan-card.border-blue-600 .btn-plan {
+    background-color: #2563eb; /* blue-600 */
+    color: white;
+}
+.plan-card.border-blue-600 .btn-plan:hover {
+    background-color: #1d4ed8; /* blue-700 */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.plan-card.border-yellow-500 .btn-plan {
+    background-color: #eab308; /* yellow-500 */
+    color: white;
+}
+.plan-card.border-yellow-500 .btn-plan:hover {
+    background-color: #ca8a04; /* yellow-600 */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.plan-card.border-purple-600 .btn-plan {
+    background-color: #9333ea; /* purple-600 */
+    color: white;
+}
+.plan-card.border-purple-600 .btn-plan:hover {
+    background-color: #7e22ce; /* purple-700 */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.plan-card.border-red-600 .btn-plan {
+    background-color: #dc2626; /* red-600 */
+    color: white;
+}
+.plan-card.border-red-600 .btn-plan:hover {
+    background-color: #b91c1c; /* red-700 */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Animações de ícones (mantidas do que você já tinha) */
+@keyframes bounceSlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes pulseSlow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+@keyframes fadeInThenUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spinSlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.animate-bounce-slow {
+    animation: bounceSlow 3s infinite ease-in-out;
+}
+
+.animate-pulse-slow {
+    animation: pulseSlow 2.5s infinite ease-in-out;
+}
+
+.animate-fade-in-up {
+    animation: fadeInThenUp 1s ease-out forwards;
+}
+
+.animate-spin-slow {
+    animation: spinSlow 5s infinite linear;
+}
